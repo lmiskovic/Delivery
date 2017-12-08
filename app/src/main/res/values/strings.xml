@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Delivery</string>
+
+    <string-array name="roles">
+        <item>Dostavljač</item>
+        <item>Dispečer</item>
+    </string-array>
+
+    <string name="err_name">Polje ime je obvezno.</string>
+    <string name="err_email">Email mora biti valjana email adresa.</string>
+    <string name="err_password">Lozinka mora sadržavati najmanje 6 znakova.</string>
+    <string name="title_activity_maps">Map</string>
+
+</resources>
