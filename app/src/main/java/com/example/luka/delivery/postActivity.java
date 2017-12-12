@@ -1,30 +1,27 @@
 package com.example.luka.delivery;
 
 import android.Manifest;
-import android.app.FragmentManager;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.support.v7.widget.ToolbarWidgetWrapper;
+
+import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
+
 import android.widget.ImageView;
-import android.widget.ListView;
+import android.widget.TextView;
+
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -38,7 +35,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 
 public class postActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener, LocationListener {
+        GoogleApiClient.OnConnectionFailedListener, LocationListener, NavigationView.OnNavigationItemSelectedListener {
 
     private GoogleMap mMap;
     GoogleApiClient mGoogleApiClient;
@@ -54,11 +51,8 @@ public class postActivity extends AppCompatActivity implements OnMapReadyCallbac
     Call<PostResponse> call;*/
 
     private ImageView mGps;
-    private String[] itemTitles;
-    private DrawerLayout mDrawerLayout;
-    private ListView mDrawerList;
-    private CharSequence mTitle;
-    private Toolbar toolbar;
+
+    private static final String TAG = "postActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,13 +77,24 @@ public class postActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Set the list's click listener
         mDrawerList.setOnItemClickListener(new DrawerItemClickListener());*/
 
-       toolbar = (Toolbar) findViewById(R.id.toolbar);
-       setSupportActionBar(toolbar);
+       /*toolbar = (Toolbar) findViewById(R.id.toolbar);
+       setSupportActionBar(toolbar);*/
+
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
         checkLocationPermission();
+
+        Intent intent = getIntent();
+        String email = intent.getStringExtra("usernameMail");
+        Log.w(TAG, "postActivity email: " + email.toString());
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.navigation_view);
+        navigationView.setNavigationItemSelectedListener(this);
+        TextView usernameEmailTextView = (TextView) navigationView.getHeaderView(0).findViewById(R.id.nav_username);
+        usernameEmailTextView.setText(email);
+
 
     }
 
@@ -258,5 +263,10 @@ public class postActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        return false;
     }
 }

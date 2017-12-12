@@ -66,7 +66,7 @@ public class loginActivity extends AppCompatActivity {
 
     @OnClick(R.id.ButtonLogin)
     void login(){
-        String email = editTextEmailLogin.getText().toString();
+        final String email = editTextEmailLogin.getText().toString();
         String password = editTextPasswordLogin.getText().toString();
 
         editTextEmailLogin.setError(null);
@@ -81,7 +81,9 @@ public class loginActivity extends AppCompatActivity {
 
                 if (response.isSuccessful()) {
                     tokenManager.saveToken(response.body());
-                    startActivity(new Intent(loginActivity.this, postActivity.class));
+                    Intent intent = new Intent (loginActivity.this, postActivity.class);
+                    intent.putExtra("usernameMail", (String) email);
+                    startActivity(intent);
 
                 } else{
                     if(response.code() == 422){
