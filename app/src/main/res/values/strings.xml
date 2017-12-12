@@ -9,6 +9,17 @@
     <string name="err_name">Polje ime je obvezno.</string>
     <string name="err_email">Email mora biti valjana email adresa.</string>
     <string name="err_password">Lozinka mora sadržavati najmanje 6 znakova.</string>
-    <string name="title_activity_maps">Map</string>
+    <string name="my_profile">Moj profil</string>
+    <string name="deliveries">Nalozi</string>
+    <string name="route">Izračunaj rutu</string>
+    <string name="sign_out">Odjavi se</string>
 
+    <string-array name="itemTitlesArray">
+        <item>My profile</item>
+        <item>Deliveries</item>
+        <item>Route</item>
+        <item>Sign out</item>
+    </string-array>
+
+    <string name="postActivityTitle">Delivery map</string>
 </resources>
