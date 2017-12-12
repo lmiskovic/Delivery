@@ -17,6 +17,9 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.support.v7.widget.ToolbarWidgetWrapper;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -34,7 +37,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 
-public class postActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,
+public class postActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
     private GoogleMap mMap;
@@ -55,6 +58,7 @@ public class postActivity extends FragmentActivity implements OnMapReadyCallback
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
     private CharSequence mTitle;
+    private Toolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,6 +83,8 @@ public class postActivity extends FragmentActivity implements OnMapReadyCallback
         // Set the list's click listener
         mDrawerList.setOnItemClickListener(new DrawerItemClickListener());*/
 
+       toolbar = (Toolbar) findViewById(R.id.toolbar);
+       setSupportActionBar(toolbar);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -240,8 +246,7 @@ public class postActivity extends FragmentActivity implements OnMapReadyCallback
             LocationServices.FusedLocationApi
                     .requestLocationUpdates(mGoogleApiClient,
                             mLocationRequest,
-                            (com.google.android.gms.location.
-                                    LocationListener) this);
+                             this);
         }
     }
 
