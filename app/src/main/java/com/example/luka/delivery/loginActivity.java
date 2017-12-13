@@ -57,6 +57,10 @@ public class loginActivity extends AppCompatActivity {
             startActivity(new Intent(loginActivity.this, postActivity.class));
             finish();
         }*/
+
+        editTextEmailLogin.setText("luka@luka.com"); //testing purposes
+        editTextPasswordLogin.setText("lukaluka"); //testing purposes
+
     }
 
     @OnClick(R.id.buttonRegisterLogin)
@@ -82,7 +86,7 @@ public class loginActivity extends AppCompatActivity {
                 if (response.isSuccessful()) {
                     tokenManager.saveToken(response.body());
                     Intent intent = new Intent (loginActivity.this, postActivity.class);
-                    intent.putExtra("usernameMail", (String) email);
+                    intent.putExtra("usernameMail", email);
                     startActivity(intent);
 
                 } else{
