@@ -5,7 +5,7 @@ package com.example.luka.delivery.network;
  */
 
 import com.example.luka.delivery.entities.AccessToken;
-import com.example.luka.delivery.entities.PostResponse;
+import com.example.luka.delivery.entities.DeliveryResponse;
 
 import retrofit2.Call;
 import retrofit2.http.Field;
@@ -26,19 +26,12 @@ public interface ApiService {
         Call<AccessToken> login(@Field("username") String username,
                                 @Field("password") String password);
 
-        @POST("social_auth")
-        @FormUrlEncoded
-        Call<AccessToken> socialAuth(@Field("name") String name,
-                                     @Field("email") String email,
-                                     @Field("provider") String provider,
-                                     @Field("provider_user_id") String providerUserId);
-
         @POST("refresh")
         @FormUrlEncoded
         Call<AccessToken> refresh(@Field("refresh_token") String refreshToken);
 
-        @GET("posts")
-        Call<PostResponse> posts();
+        @GET("deliveries")
+        Call<DeliveryResponse> deliveries();
 }
 
 

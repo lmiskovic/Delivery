@@ -8,9 +8,9 @@ import android.util.Patterns;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.basgeekball.awesomevalidation.AwesomeValidation;
+/*import com.basgeekball.awesomevalidation.AwesomeValidation;
 import com.basgeekball.awesomevalidation.ValidationStyle;
-import com.basgeekball.awesomevalidation.utility.RegexTemplate;
+import com.basgeekball.awesomevalidation.utility.RegexTemplate;*/
 import com.example.luka.delivery.entities.AccessToken;
 import com.example.luka.delivery.entities.ApiError;
 import com.example.luka.delivery.network.ApiService;
@@ -32,7 +32,7 @@ public class loginActivity extends AppCompatActivity {
 
     ApiService service;
     TokenManager tokenManager;
-    AwesomeValidation validator;
+    //AwesomeValidation validator;
     Call<AccessToken> call;
 
     private static final String TAG = "loginActivity";
@@ -50,8 +50,8 @@ public class loginActivity extends AppCompatActivity {
 
         service = RetrofitBuilder.createService(ApiService.class);
         tokenManager = TokenManager.getInstance(getSharedPreferences("prefs", MODE_PRIVATE));
-        validator = new AwesomeValidation(ValidationStyle.TEXT_INPUT_LAYOUT);
-        setupRules();
+        //validator = new AwesomeValidation(ValidationStyle.TEXT_INPUT_LAYOUT);
+        //setupRules();
 
 /*        if(tokenManager.getToken().getAccessToken() != null){
             startActivity(new Intent(loginActivity.this, postActivity.class));
@@ -85,7 +85,7 @@ public class loginActivity extends AppCompatActivity {
 
                 if (response.isSuccessful()) {
                     tokenManager.saveToken(response.body());
-                    Intent intent = new Intent (loginActivity.this, postActivity.class);
+                    Intent intent = new Intent (loginActivity.this, mapActivity.class);
                     intent.putExtra("usernameMail", email);
                     startActivity(intent);
 
@@ -126,12 +126,12 @@ public class loginActivity extends AppCompatActivity {
 
     }
 
-    private void setupRules() {
+    /*private void setupRules() {
 
         validator.addValidation(loginActivity.this, R.id.editTextEmailLogin, Patterns.EMAIL_ADDRESS, R.string.err_email);
         validator.addValidation(loginActivity.this, R.id.editTextPasswordLogin, RegexTemplate.NOT_EMPTY, R.string.err_password);
 
-    }
+    }*/
 
     @Override
     public void onDestroy(){

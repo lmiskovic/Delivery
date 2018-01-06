@@ -5,12 +5,11 @@ import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.util.Patterns;
 import android.widget.EditText;
 
-import com.basgeekball.awesomevalidation.AwesomeValidation;
+/*import com.basgeekball.awesomevalidation.AwesomeValidation;
 import com.basgeekball.awesomevalidation.ValidationStyle;
-import com.basgeekball.awesomevalidation.utility.RegexTemplate;
+import com.basgeekball.awesomevalidation.utility.RegexTemplate;*/
 
 import java.util.List;
 import java.util.Map;
@@ -30,7 +29,7 @@ import com.example.luka.delivery.network.RetrofitBuilder;
 
 public class registerActivity extends AppCompatActivity {
 
-    public static final String TAG = "registerActivity";
+    public static final String TAG = "mapActivity";
 
     @BindView(R.id.editTextNameRegister) EditText editTextNameRegister;
     @BindView(R.id.editTextEmailRegister) EditText editTextEmailRegister;
@@ -38,7 +37,7 @@ public class registerActivity extends AppCompatActivity {
 
     ApiService service;
     Call<AccessToken> call;
-    AwesomeValidation validator;
+    //AwesomeValidation validator;
     TokenManager tokenManager;
 
     @Override
@@ -49,10 +48,10 @@ public class registerActivity extends AppCompatActivity {
         ButterKnife.bind(this);
 
         service = RetrofitBuilder.createService(ApiService.class);
-        validator = new AwesomeValidation(ValidationStyle.TEXT_INPUT_LAYOUT);
+        //validator = new AwesomeValidation(ValidationStyle.TEXT_INPUT_LAYOUT);
 
         tokenManager = TokenManager.getInstance(getSharedPreferences("prefs", MODE_PRIVATE));
-        setupRules();
+        //setupRules();
         /*Switch sw = (Switch)findViewById(R.id.switch1);
 
         sw.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -125,13 +124,13 @@ public class registerActivity extends AppCompatActivity {
 
     }
 
-    public void setupRules(){
+    /*public void setupRules(){
 
         validator.addValidation(registerActivity.this, R.id.editTextNameRegister, RegexTemplate.NOT_EMPTY, R.string.err_name);
         validator.addValidation(registerActivity.this, R.id.editTextEmailRegister, Patterns.EMAIL_ADDRESS, R.string.err_email);
         validator.addValidation(registerActivity.this, R.id.editTextPasswordRegister, "[a-zA-Z0-9]{6,}", R.string.err_password);
 
-    }
+    }*/
 
     @Override
     public void onDestroy(){

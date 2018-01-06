@@ -1,7 +1,8 @@
 package com.example.luka.delivery;
-import android.content.SharedPreferences;
 
+import android.content.SharedPreferences;
 import com.example.luka.delivery.entities.AccessToken;
+
 public class TokenManager {
 
     private SharedPreferences prefs;

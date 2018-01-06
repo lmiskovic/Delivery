@@ -29,7 +29,6 @@ public class CustomAuthenticator implements Authenticator {
         return INSTANCE;
     }
 
-
     @Nullable
     @Override
     public Request authenticate(Route route, Response response) throws IOException {

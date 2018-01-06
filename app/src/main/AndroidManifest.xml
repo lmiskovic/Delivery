@@ -40,8 +40,9 @@
             android:value="@string/google_maps_key" />
 
         <activity
-            android:name=".postActivity"
-            android:label="@string/postActivityTitle"></activity>
+            android:name=".mapActivity"
+            android:label="@string/postActivityTitle" />
+        <activity android:name=".deliveryActivity"></activity>
     </application>
 
 </manifest>

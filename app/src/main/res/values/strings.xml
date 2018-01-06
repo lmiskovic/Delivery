@@ -16,4 +16,6 @@
     <string name="sign_out">Odjavi se</string>
 
     <string name="postActivityTitle">Delivery map</string>
+
+    <string name="deliveryMessage">If there are any deliveries they will be shown here.</string>
 </resources>
