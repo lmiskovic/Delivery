@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/my_profile"
+            android:icon="@drawable/ic_my_profile"
+            android:title="@string/my_profile" />
+
+        <item
+            android:id="@+id/deliveries"
+            android:icon="@drawable/ic_deliveries_list"
+            android:title="@string/deliveries" />
+
+        <item
+            android:id="@+id/route"
+            android:icon="@drawable/ic_route"
+            android:title="@string/route" />
+
+        <item
+            android:id="@+id/sign_out"
+            android:icon="@drawable/ic_signout"
+            android:title="@string/sign_out" />
+    </group>
+
+</menu>
