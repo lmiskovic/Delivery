@@ -1,15 +1,35 @@
 package com.example.luka.delivery;
 
 import android.content.Intent;
+import android.location.Address;
+import android.location.Geocoder;
 import android.support.annotation.BinderThread;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.widget.ListView;
 import android.widget.TextView;
 
+import com.example.luka.delivery.entities.Delivery;
 import com.example.luka.delivery.entities.DeliveryResponse;
+import com.example.luka.delivery.entities.MapLocation;
 import com.example.luka.delivery.network.ApiService;
 import com.example.luka.delivery.network.RetrofitBuilder;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.maps.GeoApiContext;
+import com.google.maps.GeocodingApi;
+import com.google.maps.errors.ApiException;
+import com.google.maps.model.GeocodingResult;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -20,17 +40,29 @@ import retrofit2.Response;
 public class deliveryActivity extends AppCompatActivity {
 
     ApiService service;
+
     TokenManager tokenManager;
+
     Call<DeliveryResponse> call;
+
+    List<Delivery> deliveryList;
+
+    RecyclerView recyclerView;
 
     private static final String TAG = "deliveryActivity";
 
-    @BindView(R.id.deliveriesList) TextView deliveriesList;
+    private RecyclerView mRecyclerView;
+    private RecyclerView.Adapter mAdapter;
+    private RecyclerView.LayoutManager mLayoutManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_delivery);
+
+        recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         ButterKnife.bind(this);
         tokenManager = TokenManager.getInstance((getSharedPreferences("prefs", MODE_PRIVATE)));
@@ -42,25 +74,81 @@ public class deliveryActivity extends AppCompatActivity {
 
         service = RetrofitBuilder.createServiceWithAuth(ApiService.class, tokenManager);
 
+        getDeliveries();
+    }
+
+    public void getDeliveries(){
+
+        deliveryList = new ArrayList<>();
+
         call = service.deliveries();
         call.enqueue(new Callback<DeliveryResponse>() {
             @Override
             public void onResponse(Call<DeliveryResponse> call, Response<DeliveryResponse> response) {
+
                 Log.w(TAG, "onResponse: " + response );
 
                 if(response.isSuccessful()){
-                    String deliveryList = response.body().getData().get(0).getId() + "\n"
+                    for (int i = 0; i < response.body().getData().size(); i++) {
+                        deliveryList.add(
+                                new Delivery(
+                                        response.body().getData().get(i).getId(),
+                                        response.body().getData().get(i).getCreated_at(),
+                                        response.body().getData().get(i).getUpdated_at(),
+                                        response.body().getData().get(i).getUser_id(),
+                                        response.body().getData().get(i).getDeliveryAddress(),
+                                        response.body().getData().get(i).getCustomerName(),
+                                        response.body().getData().get(i).getContactPhoneNumber(),
+                                        response.body().getData().get(i).getNote(),
+                                        response.body().getData().get(i).getMapLocation()
+                                ));
+
+                        if(deliveryList.get(i).getMapLocation()==null){
+                            Geocoder geocoder = new Geocoder(getApplicationContext());
+
+                            List<Address> addresses = null;
+                            try {
+                                addresses = geocoder.getFromLocationName(deliveryList.get(i).getDeliveryAddress(), 1);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            if(addresses.size() > 0) {
+                                double latitude= addresses.get(0).getLatitude();
+                                double longitude= addresses.get(0).getLongitude();
+                                deliveryList.get(i).setMapLocation(new MapLocation(latitude, longitude));
+                            }
+                        }
+
+                        Log.i(TAG, deliveryList.get(i).getId() + "\n"
+                                + deliveryList.get(i).getCreated_at() + "\n"
+                                + deliveryList.get(i).getUpdated_at() + "\n"
+                                + deliveryList.get(i).getUser_id() + "\n"
+                                + deliveryList.get(i).getDeliveryAddress() + "\n"
+                                + deliveryList.get(i).getCustomerName() + "\n"
+                                + deliveryList.get(i).getContactPhoneNumber() + "\n"
+                                + deliveryList.get(i).getNote() + "\n"
+                                + deliveryList.get(i).getMapLocation().getLatLng().latitude + " "
+                                + deliveryList.get(i).getMapLocation().getLatLng().longitude + "\n");
+                    }
+                    /*String deliveryList = response.body().getData().get(0).getId() + "\n"
                             + response.body().getData().get(0).getCustomerName() + "\n"
                             + response.body().getData().get(0).getContactPhoneNumber() + "\n"
                             + response.body().getData().get(0).getDeliveryAddress() + "\n"
-                            + response.body().getData().get(0).getNote() + "\n";
-                    deliveriesList.setText(deliveryList);
+                            + response.body().getData().get(0).getNote() + "\n";*/
+                    //deliveriesList.setText(deliveryList);
                 }else {
                     tokenManager.deleteToken();
                     startActivity(new Intent(deliveryActivity.this, loginActivity.class));
                     finish();
 
                 }
+
+                //creating recyclerview adapter
+                deliveryAdapter adapter = new deliveryAdapter(getApplicationContext(), deliveryList);
+
+                //setting adapter to recyclerview
+                recyclerView.setAdapter(adapter);
+
             }
 
             @Override

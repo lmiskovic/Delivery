@@ -9,4 +9,5 @@ public class DeliveryResponse {
     public List<Delivery> getData() {
         return data;
     }
+
 }
