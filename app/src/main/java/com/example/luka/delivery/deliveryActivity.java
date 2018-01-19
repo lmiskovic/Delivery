@@ -3,29 +3,17 @@ package com.example.luka.delivery;
 import android.content.Intent;
 import android.location.Address;
 import android.location.Geocoder;
-import android.support.annotation.BinderThread;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.widget.ListView;
-import android.widget.TextView;
 
 import com.example.luka.delivery.entities.Delivery;
 import com.example.luka.delivery.entities.DeliveryResponse;
 import com.example.luka.delivery.entities.MapLocation;
 import com.example.luka.delivery.network.ApiService;
 import com.example.luka.delivery.network.RetrofitBuilder;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.maps.GeoApiContext;
-import com.google.maps.GeocodingApi;
-import com.google.maps.errors.ApiException;
-import com.google.maps.model.GeocodingResult;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,6 +21,7 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -47,24 +36,20 @@ public class deliveryActivity extends AppCompatActivity {
 
     List<Delivery> deliveryList;
 
-    RecyclerView recyclerView;
+    @BindView(R.id.recyclerView) RecyclerView recyclerView;
 
     private static final String TAG = "deliveryActivity";
-
-    private RecyclerView mRecyclerView;
-    private RecyclerView.Adapter mAdapter;
-    private RecyclerView.LayoutManager mLayoutManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_delivery);
 
-        recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+        ButterKnife.bind(this);
+
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        ButterKnife.bind(this);
         tokenManager = TokenManager.getInstance((getSharedPreferences("prefs", MODE_PRIVATE)));
 
         if(tokenManager.getToken()==null){
@@ -156,6 +141,5 @@ public class deliveryActivity extends AppCompatActivity {
                 Log.w(TAG, "onFailure: " + t.getMessage() );
             }
         });
-
     }
 }

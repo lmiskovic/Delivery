@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/bottom_sheet"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/colorPrimaryDark"
+    android:orientation="vertical"
+    app:behavior_hideable="true"
+    app:behavior_peekHeight="80dp"
+    app:layout_behavior="android.support.design.widget.BottomSheetBehavior">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:background="@color/colorPrimaryDark"
+        android:gravity="center"
+        android:text="Actions with delivery"
+        android:textColor="@color/colorPrimaryText"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/colorDivider"/>
+
+    <Button
+        android:id="@+id/buttonDelivered"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:background="@color/colorPrimarylighter"
+        android:text="Delivered"
+        android:textAllCaps="false"
+        android:clickable="true"
+        android:textColor="@color/colorPrimaryText"
+        android:padding="16dp"
+        android:layout_marginTop="16dp"/>
+
+    <Button
+        android:id="@+id/buttonTomorrow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:background="@color/colorPrimarylighter"
+        android:text="Custommer not available, try again tomorrow"
+        android:textAllCaps="false"
+        android:clickable="true"
+        android:textColor="@color/colorPrimaryText"
+        android:padding="16dp"
+        android:layout_marginTop="16dp"/>
+
+    <Button
+    android:id="@+id/buttonDeclined"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="16dp"
+    android:background="@color/colorPrimarylighter"
+    android:text="Delivery declined by customer"
+    android:textAllCaps="false"
+    android:clickable="true"
+    android:textColor="@color/colorPrimaryText"
+    android:padding="16dp"
+    android:layout_marginTop="16dp" android:layout_marginBottom="16dp"/>
+
+
+</LinearLayout>

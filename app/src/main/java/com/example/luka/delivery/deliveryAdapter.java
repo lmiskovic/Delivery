@@ -1,25 +1,18 @@
 package com.example.luka.delivery;
 
 import android.content.Context;
-import android.support.v4.app.FragmentManager;
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import com.example.luka.delivery.entities.Delivery;
 import com.example.luka.delivery.entities.MapLocation;
-import com.google.android.gms.maps.CameraUpdate;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
-import com.google.android.gms.maps.MapsInitializer;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -33,11 +26,13 @@ public class deliveryAdapter extends RecyclerView.Adapter<DeliveryViewHolder> {
     //this context we will use to inflate the layout
     private Context context;
 
+    private String TAG = "deliveryAdapter";
+
     //we are storing all the products in a list
     private List<Delivery> deliveryList;
 
-    protected HashSet<MapView> mMapViews = new HashSet<>();
-    protected ArrayList<MapLocation> mMapLocations;
+    private HashSet<MapView> mMapViews = new HashSet<>();
+    private ArrayList<MapLocation> mMapLocations;
 
     //getting the context and product list with constructor
     public deliveryAdapter(Context context, List<Delivery> deliveryList) {
@@ -62,13 +57,24 @@ public class deliveryAdapter extends RecyclerView.Adapter<DeliveryViewHolder> {
     @Override
     public void onBindViewHolder(DeliveryViewHolder holder, int position) {
 
-        Delivery delivery = deliveryList.get(position);
+        final Delivery delivery = deliveryList.get(position);
 
         holder.textViewDeliveryAddress.setText(delivery.getDeliveryAddress());
         holder.textViewCustomerName.setText(delivery.getCustomerName());
         holder.textViewContactPhoneNumber.setText(delivery.getContactPhoneNumber());
         holder.textViewNote.setText(delivery.getNote());
         holder.setMapLocation(delivery.getMapLocation());
+
+        holder.view.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View v) {
+                //call map activity with object delivery
+                context.startActivity(new Intent(context, mapActivity.class)
+                        .putExtra("Delivery", delivery));
+                Log.i(TAG, "Delivery ID -> " + delivery.getId()) ;
+
+            }
+        });
+
     }
 
     @Override
