@@ -1,13 +1,11 @@
 package com.example.luka.delivery;
 
 import android.content.Context;
-import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
-import com.example.luka.delivery.entities.Delivery;
 import com.example.luka.delivery.entities.MapLocation;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -40,9 +38,9 @@ public class DeliveryViewHolder extends RecyclerView.ViewHolder implements OnMap
         this.view = itemView;
         ButterKnife.bind(this, itemView);
 
-        mapView.setClickable(false); // add custom click events
 
-        //pass delivery.maplocation to main(map activity) and draw route from current location
+
+        mapView.setClickable(false); // add custom click events
 
         mapView.onCreate(null);
         mapView.getMapAsync(this);

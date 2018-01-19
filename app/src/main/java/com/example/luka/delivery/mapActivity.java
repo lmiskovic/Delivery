@@ -33,6 +33,7 @@ import com.akexorcist.googledirection.model.Direction;
 import com.akexorcist.googledirection.model.Leg;
 import com.akexorcist.googledirection.model.Route;
 import com.akexorcist.googledirection.util.DirectionConverter;
+import com.example.luka.delivery.entities.AccessToken;
 import com.example.luka.delivery.entities.Delivery;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -62,6 +63,7 @@ public class mapActivity extends AppCompatActivity
         GoogleApiClient.OnConnectionFailedListener,
         NavigationView.OnNavigationItemSelectedListener{
 
+    AccessToken accessToken;
     GoogleMap mGoogleMap;
     SupportMapFragment mapFrag;
     LocationRequest mLocationRequest;
@@ -153,10 +155,6 @@ public class mapActivity extends AppCompatActivity
     }
 
     private void drawSelected() {
-
-        Log.i(TAG,"draw selected");
-
-        Log.i("Delivery ID: ", String.valueOf(currentDelivery.getId()));
 
         GoogleDirection.withServerKey("AIzaSyAY5I_s7St4sbEqQsUO8ZRwCADK5Kb6pKc")
                 .from(toLatLng(mLastLocation))

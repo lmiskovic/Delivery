@@ -1,74 +1,56 @@
-package com.example.luka.delivery;
+package com.example.luka.delivery.network;
 
-import android.content.Intent;
+import android.content.Context;
 import android.location.Address;
 import android.location.Geocoder;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 
+import com.example.luka.delivery.TokenManager;
+import com.example.luka.delivery.entities.AccessToken;
 import com.example.luka.delivery.entities.Delivery;
 import com.example.luka.delivery.entities.DeliveryResponse;
 import com.example.luka.delivery.entities.MapLocation;
-import com.example.luka.delivery.network.ApiService;
-import com.example.luka.delivery.network.RetrofitBuilder;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class deliveryActivity extends AppCompatActivity {
+public class deliveryGetter {
 
-    ApiService service;
+    private ApiService service;
+    private TokenManager tokenManager;
+    private Call<DeliveryResponse> call;
+    private List<Delivery> deliveryList;
+    private String TAG = "deliveryGetter";
+    private Context context;
+    private AccessToken accessToken;
+    public deliveryGetter(){
 
-    TokenManager tokenManager;
+    }
 
-    Call<DeliveryResponse> call;
+    public deliveryGetter (Context context, AccessToken accessToken){
+        this.context = context;
+        tokenManager.saveToken(accessToken);
+    }
 
-    List<Delivery> deliveryList;
+    public List<Delivery> getDeliveries(){
 
-    @BindView(R.id.recyclerView) RecyclerView recyclerView;
-
-    private static final String TAG = "deliveryActivity";
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_delivery);
-
-        ButterKnife.bind(this);
-
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-        tokenManager = TokenManager.getInstance((getSharedPreferences("prefs", MODE_PRIVATE)));
-
-        if(tokenManager.getToken()==null){
-            startActivity(new Intent(deliveryActivity.this, loginActivity.class));
-            finish();
+        if(tokenManager.getToken() == null){
+            Log.e(TAG,"token = null!");
+            return null;
         }
 
         service = RetrofitBuilder.createServiceWithAuth(ApiService.class, tokenManager);
 
-        getDeliveries();
-    }
-
-    public void getDeliveries(){
 
         deliveryList = new ArrayList<>();
 
         call = service.deliveries();
         call.enqueue(new Callback<DeliveryResponse>() {
-
             @Override
             public void onResponse(Call<DeliveryResponse> call, Response<DeliveryResponse> response) {
 
@@ -90,7 +72,7 @@ public class deliveryActivity extends AppCompatActivity {
                                 ));
 
                         if(deliveryList.get(i).getMapLocation()==null){
-                            Geocoder geocoder = new Geocoder(getApplicationContext());
+                            Geocoder geocoder = new Geocoder(context);
 
                             List<Address> addresses = null;
                             try {
@@ -116,7 +98,6 @@ public class deliveryActivity extends AppCompatActivity {
                                 + deliveryList.get(i).getMapLocation().getLatLng().latitude + " "
                                 + deliveryList.get(i).getMapLocation().getLatLng().longitude + "\n");
                     }
-
                     /*String deliveryList = response.body().getData().get(0).getId() + "\n"
                             + response.body().getData().get(0).getCustomerName() + "\n"
                             + response.body().getData().get(0).getContactPhoneNumber() + "\n"
@@ -125,27 +106,16 @@ public class deliveryActivity extends AppCompatActivity {
                     //deliveriesList.setText(deliveryList);
                 }else {
                     tokenManager.deleteToken();
-                    startActivity(new Intent(deliveryActivity.this, loginActivity.class));
-                    finish();
-
+                    //startActivity(new Intent(context, loginActivity.class));
                 }
-
-                //creating recyclerview adapter
-                deliveryAdapter adapter = new deliveryAdapter(getApplicationContext(), deliveryList);
-
-                //setting adapter to recyclerview
-                recyclerView.setAdapter(adapter);
-
             }
 
             @Override
             public void onFailure(Call<DeliveryResponse> call, Throwable t) {
                 Log.w(TAG, "onFailure: " + t.getMessage() );
             }
-
-
         });
-
-
+        return deliveryList;
     }
+
 }

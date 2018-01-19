@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import butterknife.BindView;
+import butterknife.ButterKnife;
 
 
 public class deliveryAdapter extends RecyclerView.Adapter<DeliveryViewHolder> {
@@ -33,6 +34,7 @@ public class deliveryAdapter extends RecyclerView.Adapter<DeliveryViewHolder> {
 
     private HashSet<MapView> mMapViews = new HashSet<>();
     private ArrayList<MapLocation> mMapLocations;
+
 
     //getting the context and product list with constructor
     public deliveryAdapter(Context context, List<Delivery> deliveryList) {
@@ -70,8 +72,6 @@ public class deliveryAdapter extends RecyclerView.Adapter<DeliveryViewHolder> {
                 //call map activity with object delivery
                 context.startActivity(new Intent(context, mapActivity.class)
                         .putExtra("Delivery", delivery));
-                Log.i(TAG, "Delivery ID -> " + delivery.getId()) ;
-
             }
         });
 
@@ -82,7 +82,4 @@ public class deliveryAdapter extends RecyclerView.Adapter<DeliveryViewHolder> {
         return deliveryList.size();
     }
 
-    public HashSet<MapView> getMapViews() {
-        return mMapViews;
-    }
 }
