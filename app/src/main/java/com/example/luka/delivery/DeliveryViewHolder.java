@@ -36,9 +36,8 @@ public class DeliveryViewHolder extends RecyclerView.ViewHolder implements OnMap
         super(itemView);
         this.context = context;
         this.view = itemView;
+
         ButterKnife.bind(this, itemView);
-
-
 
         mapView.setClickable(false); // add custom click events
 

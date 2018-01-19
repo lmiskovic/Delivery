@@ -32,17 +32,6 @@
             android:layout_height="match_parent"
             tools:context="com.example.luka.delivery.postActivity"/>
 
-        <ImageView
-            android:id="@+id/ic_gps"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:layout_marginRight="8dp"
-            android:src="@drawable/ic_gps"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentBottom="true"
-            app:layout_constraintEnd_toEndOf="parent"/>
-
     </RelativeLayout>
 
     <android.support.design.widget.NavigationView
@@ -56,6 +45,7 @@
     </android.support.design.widget.NavigationView>
 
 </android.support.v4.widget.DrawerLayout>
+
     <include layout="@layout/bottom_sheet"/>
 
 </android.support.design.widget.CoordinatorLayout>

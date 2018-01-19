@@ -10,6 +10,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
 import android.support.annotation.NonNull;
+import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -21,8 +22,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -53,6 +56,7 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.maps.model.VisibleRegion;
 import com.google.maps.model.Bounds;
 
 import java.util.ArrayList;
@@ -70,17 +74,20 @@ public class mapActivity extends AppCompatActivity
     GoogleApiClient mGoogleApiClient;
     Location mLastLocation;
     FusedLocationProviderClient mFusedLocationClient;
-
+    private int visibleRelativeLayoutHeight;
+    private int sheetHeight;
     Delivery currentDelivery;
-
+    LinearLayout bottomSheet;
     PolylineOptions polyline;
-
+    private boolean bottomSheetCollapsed;
     private static final String TAG = "mapActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
+
+        bottomSheetCollapsed = true;
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
@@ -101,8 +108,45 @@ public class mapActivity extends AppCompatActivity
 
         currentDelivery = getIntent().getParcelableExtra("Delivery");
         if (currentDelivery!=null){
-            LinearLayout linearLayout = findViewById(R.id.bottom_sheet);
-            linearLayout.setVisibility(View.VISIBLE);
+            bottomSheet = findViewById(R.id.bottom_sheet);
+            ViewTreeObserver vto = bottomSheet.getViewTreeObserver();
+
+            vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+
+                    final RelativeLayout visibleRelativeLayout = findViewById(R.id.visibleRelativeLayout);
+                    visibleRelativeLayoutHeight = visibleRelativeLayout.getHeight();
+                    sheetHeight = bottomSheet.getHeight();
+                    BottomSheetBehavior behavior = BottomSheetBehavior.from((View) bottomSheet);
+                    behavior.setPeekHeight(visibleRelativeLayoutHeight);
+                    if (bottomSheetCollapsed){
+                        mGoogleMap.setPadding(0,0,0,visibleRelativeLayoutHeight);
+                        Toast.makeText(getApplicationContext(), String.valueOf(visibleRelativeLayoutHeight), Toast.LENGTH_SHORT).show();
+                    } else{
+                    }
+
+                    behavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+                        @Override
+                        public void onStateChanged(@NonNull View bottomSheet, int newState) {
+                            if (newState == BottomSheetBehavior.STATE_EXPANDED) {
+                                bottomSheetCollapsed = false;
+                                mGoogleMap.setPadding(0,0,0,sheetHeight);
+                                Toast.makeText(getApplicationContext(), String.valueOf(sheetHeight), Toast.LENGTH_SHORT).show();
+                            }
+                            else if (newState == BottomSheetBehavior.STATE_COLLAPSED) {
+                                bottomSheetCollapsed = true;
+                                mGoogleMap.setPadding(0,0,0,visibleRelativeLayoutHeight);
+                                Toast.makeText(getApplicationContext(), String.valueOf(visibleRelativeLayoutHeight), Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        @Override
+                        public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+                        }
+                    });
+                }
+            });
         }
     }
 

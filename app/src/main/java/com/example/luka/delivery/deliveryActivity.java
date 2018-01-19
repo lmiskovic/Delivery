@@ -1,19 +1,27 @@
 package com.example.luka.delivery;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
+import android.os.AsyncTask;
+import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 
 import com.example.luka.delivery.entities.Delivery;
 import com.example.luka.delivery.entities.DeliveryResponse;
 import com.example.luka.delivery.entities.MapLocation;
 import com.example.luka.delivery.network.ApiService;
 import com.example.luka.delivery.network.RetrofitBuilder;
+import com.pnikosis.materialishprogress.ProgressWheel;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -29,11 +37,8 @@ import retrofit2.Response;
 public class deliveryActivity extends AppCompatActivity {
 
     ApiService service;
-
     TokenManager tokenManager;
-
     Call<DeliveryResponse> call;
-
     List<Delivery> deliveryList;
 
     @BindView(R.id.recyclerView) RecyclerView recyclerView;
@@ -62,7 +67,7 @@ public class deliveryActivity extends AppCompatActivity {
         getDeliveries();
     }
 
-    public void getDeliveries(){
+    public void getDeliveries() {
 
         deliveryList = new ArrayList<>();
 
@@ -132,9 +137,10 @@ public class deliveryActivity extends AppCompatActivity {
 
                 //creating recyclerview adapter
                 deliveryAdapter adapter = new deliveryAdapter(getApplicationContext(), deliveryList);
-
                 //setting adapter to recyclerview
                 recyclerView.setAdapter(adapter);
+
+                //add loading screenO
 
             }
 

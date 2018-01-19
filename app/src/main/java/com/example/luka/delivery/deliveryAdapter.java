@@ -69,7 +69,7 @@ public class deliveryAdapter extends RecyclerView.Adapter<DeliveryViewHolder> {
 
         holder.view.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
-                //call map activity with object delivery
+                //call map activity with delivery object
                 context.startActivity(new Intent(context, mapActivity.class)
                         .putExtra("Delivery", delivery));
             }
