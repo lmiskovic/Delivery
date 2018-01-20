@@ -4,6 +4,7 @@
     android:id="@+id/bottom_sheet"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:visibility="gone"
     android:background="@color/colorPrimaryDark"
     android:orientation="vertical"
     app:layout_behavior="android.support.design.widget.BottomSheetBehavior">
@@ -11,17 +12,12 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingHorizontal="16dp"
+        android:padding="16dp"
         android:id="@+id/visibleRelativeLayout">
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="16dp">
 
             <TextView
                 android:paddingVertical="4dp"
-                android:id="@+id/Address"
+                android:id="@+id/sheetAddress"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/colorPrimaryText"
@@ -30,21 +26,20 @@
 
             <TextView
                 android:paddingVertical="4dp"
-                android:id="@+id/textDeliveryAdress"
+                android:id="@+id/sheetTextDeliveryAdress"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_toRightOf="@id/Address"
+                android:layout_toRightOf="@id/sheetAddress"
                 android:textColor="@color/colorPrimaryText"
-                android:layout_above="@id/textDeliveryAdress"/>
-
+                android:layout_above="@id/sheetTextDeliveryAdress"/>
 
             <TextView
                 android:paddingVertical="4dp"
                 android:layout_marginTop="4dp"
-                android:id="@+id/CustomerName"
+                android:id="@+id/sheetCustomerName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/Address"
+                android:layout_below="@id/sheetAddress"
                 android:textColor="@color/colorPrimaryText"
                 android:textStyle="bold"
                 android:text="Custommer name: "/>
@@ -52,53 +47,50 @@
             <TextView
                 android:paddingVertical="4dp"
                 android:layout_marginTop="4dp"
-                android:id="@+id/textCustomerName"
+                android:id="@+id/sheetTextCustomerName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/textDeliveryAdress"
-                android:layout_toRightOf="@id/CustomerName"
+                android:layout_below="@id/sheetTextDeliveryAdress"
+                android:layout_toRightOf="@id/sheetCustomerName"
                 android:textColor="@color/colorPrimaryText" />
 
             <TextView
                 android:paddingVertical="4dp"
-                android:id="@+id/ContactPhone"
+                android:id="@+id/sheetContactPhone"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/CustomerName"
+                android:layout_below="@id/sheetCustomerName"
                 android:textColor="@color/colorPrimaryText"
                 android:textStyle="bold"
                 android:text="Contact phone number: "/>
 
             <TextView
                 android:paddingVertical="4dp"
-                android:id="@+id/textContactPhone"
+                android:id="@+id/sheetTextContactPhone"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/textCustomerName"
-                android:layout_toRightOf="@id/ContactPhone"
+                android:layout_below="@id/sheetTextCustomerName"
+                android:layout_toRightOf="@id/sheetContactPhone"
                 android:textColor="@color/colorPrimaryText" />
 
             <TextView
                 android:paddingVertical="4dp"
-                android:id="@+id/Note"
+                android:id="@+id/sheetNote"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/ContactPhone"
+                android:layout_below="@id/sheetContactPhone"
                 android:textColor="@color/colorPrimaryText"
                 android:textStyle="bold"
                 android:text="Note: "/>
 
             <TextView
                 android:paddingVertical="4dp"
-                android:id="@+id/textNote"
+                android:id="@+id/sheetTextNote"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textColor="@color/colorPrimaryText"
-                android:layout_toRightOf="@id/Note"
-                android:layout_below="@id/textContactPhone"/>
-
-        </RelativeLayout>
-        
+                android:layout_toRightOf="@id/sheetNote"
+                android:layout_below="@id/sheetTextContactPhone"/>
     </RelativeLayout>
     
     
@@ -130,17 +122,17 @@
         android:layout_marginTop="16dp"/>
 
     <Button
-    android:id="@+id/buttonDeclined"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_marginHorizontal="16dp"
-    android:background="@color/colorPrimarylighter"
-    android:text="Delivery declined by customer"
-    android:textAllCaps="false"
-    android:clickable="true"
-    android:textColor="@color/colorPrimaryText"
-    android:padding="16dp"
-    android:layout_marginTop="16dp" android:layout_marginBottom="16dp"/>
+        android:id="@+id/buttonDeclined"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:background="@color/colorPrimarylighter"
+        android:text="Delivery declined by customer"
+        android:textAllCaps="false"
+        android:clickable="true"
+        android:textColor="@color/colorPrimaryText"
+        android:padding="16dp"
+        android:layout_marginTop="16dp" android:layout_marginBottom="16dp"/>
 
 
 </LinearLayout>

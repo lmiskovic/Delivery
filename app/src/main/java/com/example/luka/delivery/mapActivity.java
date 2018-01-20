@@ -5,14 +5,12 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
-import android.location.LocationListener;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
@@ -23,7 +21,6 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -31,12 +28,8 @@ import android.widget.Toast;
 
 import com.akexorcist.googledirection.DirectionCallback;
 import com.akexorcist.googledirection.GoogleDirection;
-import com.akexorcist.googledirection.constant.AvoidType;
 import com.akexorcist.googledirection.model.Direction;
-import com.akexorcist.googledirection.model.Leg;
-import com.akexorcist.googledirection.model.Route;
 import com.akexorcist.googledirection.util.DirectionConverter;
-import com.example.luka.delivery.entities.AccessToken;
 import com.example.luka.delivery.entities.Delivery;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -45,21 +38,19 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.android.gms.maps.model.VisibleRegion;
-import com.google.maps.model.Bounds;
 
 import java.util.ArrayList;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 public class mapActivity extends AppCompatActivity
         implements OnMapReadyCallback,
@@ -67,7 +58,6 @@ public class mapActivity extends AppCompatActivity
         GoogleApiClient.OnConnectionFailedListener,
         NavigationView.OnNavigationItemSelectedListener{
 
-    AccessToken accessToken;
     GoogleMap mGoogleMap;
     SupportMapFragment mapFrag;
     LocationRequest mLocationRequest;
@@ -77,16 +67,24 @@ public class mapActivity extends AppCompatActivity
     private int visibleRelativeLayoutHeight;
     private int sheetHeight;
     Delivery currentDelivery;
-    LinearLayout bottomSheet;
     PolylineOptions polyline;
     private boolean bottomSheetCollapsed;
     private static final String TAG = "mapActivity";
+
+    @BindView(R.id.sheetTextDeliveryAdress) TextView sheetTextViewDeliveryAddress;
+    @BindView(R.id.sheetTextCustomerName) TextView sheetTextViewCustomerName;
+    @BindView(R.id.sheetTextNote) TextView sheetTextViewNote;
+    @BindView(R.id.sheetTextContactPhone) TextView sheetTextViewContactPhoneNumber;
+
+    @BindView(R.id.navigation_view) NavigationView navigationView;
+    @BindView(R.id.bottom_sheet) LinearLayout bottomSheet;
+    @BindView(R.id.visibleRelativeLayout) RelativeLayout visibleRelativeLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
-
+        ButterKnife.bind(this);
         bottomSheetCollapsed = true;
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
@@ -98,8 +96,8 @@ public class mapActivity extends AppCompatActivity
         //String email = intent.getStringExtra("usernameMail");
         //Log.w(TAG, "mapActivity email: " + email.toString());
 
-        NavigationView navigationView = findViewById(R.id.navigation_view);
         navigationView.setNavigationItemSelectedListener(this);
+
         //View hView = navigationView.getHeaderView(0);
 
         //TextView nav_user = hView.findViewById(R.id.nav_username);
@@ -107,22 +105,28 @@ public class mapActivity extends AppCompatActivity
         //nav_user.setText(email);
 
         currentDelivery = getIntent().getParcelableExtra("Delivery");
+
         if (currentDelivery!=null){
-            bottomSheet = findViewById(R.id.bottom_sheet);
+
+            sheetTextViewDeliveryAddress.setText(currentDelivery.getDeliveryAddress());
+            sheetTextViewCustomerName.setText(currentDelivery.getCustomerName());
+            sheetTextViewContactPhoneNumber.setText(currentDelivery.getContactPhoneNumber());
+            sheetTextViewNote.setText(currentDelivery.getNote());
+
+            bottomSheet.setVisibility(View.VISIBLE);
+
             ViewTreeObserver vto = bottomSheet.getViewTreeObserver();
 
             vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
                 @Override
                 public void onGlobalLayout() {
 
-                    final RelativeLayout visibleRelativeLayout = findViewById(R.id.visibleRelativeLayout);
                     visibleRelativeLayoutHeight = visibleRelativeLayout.getHeight();
                     sheetHeight = bottomSheet.getHeight();
                     BottomSheetBehavior behavior = BottomSheetBehavior.from((View) bottomSheet);
                     behavior.setPeekHeight(visibleRelativeLayoutHeight);
                     if (bottomSheetCollapsed){
                         mGoogleMap.setPadding(0,0,0,visibleRelativeLayoutHeight);
-                        Toast.makeText(getApplicationContext(), String.valueOf(visibleRelativeLayoutHeight), Toast.LENGTH_SHORT).show();
                     } else{
                     }
 
@@ -132,12 +136,10 @@ public class mapActivity extends AppCompatActivity
                             if (newState == BottomSheetBehavior.STATE_EXPANDED) {
                                 bottomSheetCollapsed = false;
                                 mGoogleMap.setPadding(0,0,0,sheetHeight);
-                                Toast.makeText(getApplicationContext(), String.valueOf(sheetHeight), Toast.LENGTH_SHORT).show();
                             }
                             else if (newState == BottomSheetBehavior.STATE_COLLAPSED) {
                                 bottomSheetCollapsed = true;
                                 mGoogleMap.setPadding(0,0,0,visibleRelativeLayoutHeight);
-                                Toast.makeText(getApplicationContext(), String.valueOf(visibleRelativeLayoutHeight), Toast.LENGTH_SHORT).show();
                             }
                         }
 
@@ -264,6 +266,14 @@ public class mapActivity extends AppCompatActivity
 
     }
 
+    public void updateMapBounds(Location mLastLocation, LatLng currentDeliveryLatLng){
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        builder.include(toLatLng(mLastLocation));
+        builder.include(currentDeliveryLatLng);
+        LatLngBounds bounds = builder.build();
+        mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 400));
+    }
+
     LocationCallback mLocationCallback = new LocationCallback(){
         @Override
         public void onLocationResult(LocationResult locationResult) {
@@ -271,17 +281,15 @@ public class mapActivity extends AppCompatActivity
                 Log.i("MapsActivity", "Location: " + location.getLatitude() + " " + location.getLongitude());
                 mLastLocation = location;
 
+                // TODO add redraw polyline
+
                 //Place current location marker
                 LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
 
                 //move map camera
                 mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16));
                 if(currentDelivery!=null){
-                    LatLngBounds.Builder builder = new LatLngBounds.Builder();
-                    builder.include(toLatLng(mLastLocation));
-                    builder.include(currentDelivery.getMapLocation().getLatLng());
-                    LatLngBounds bounds = builder.build();
-                    mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 400));
+                    updateMapBounds(mLastLocation, currentDelivery.getMapLocation().getLatLng());
                 }
             }
             if(currentDelivery!=null)
