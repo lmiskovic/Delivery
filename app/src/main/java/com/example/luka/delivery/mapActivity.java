@@ -1,9 +1,13 @@
 package com.example.luka.delivery;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
@@ -31,6 +35,12 @@ import com.akexorcist.googledirection.GoogleDirection;
 import com.akexorcist.googledirection.model.Direction;
 import com.akexorcist.googledirection.util.DirectionConverter;
 import com.example.luka.delivery.entities.Delivery;
+import com.example.luka.delivery.entities.DeliveryResponse;
+import com.example.luka.delivery.entities.MapLocation;
+import com.example.luka.delivery.entities.onDeliveryListener;
+import com.example.luka.delivery.network.ApiService;
+import com.example.luka.delivery.network.DeliveryGetter;
+import com.example.luka.delivery.network.RetrofitBuilder;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -47,10 +57,15 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class mapActivity extends AppCompatActivity
         implements OnMapReadyCallback,
@@ -107,7 +122,6 @@ public class mapActivity extends AppCompatActivity
         currentDelivery = getIntent().getParcelableExtra("Delivery");
 
         if (currentDelivery!=null){
-
             sheetTextViewDeliveryAddress.setText(currentDelivery.getDeliveryAddress());
             sheetTextViewCustomerName.setText(currentDelivery.getCustomerName());
             sheetTextViewContactPhoneNumber.setText(currentDelivery.getContactPhoneNumber());
@@ -168,6 +182,16 @@ public class mapActivity extends AppCompatActivity
         mGoogleMap = googleMap;
         mGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 
+        if(currentDelivery==null){
+
+            DeliveryGetter deliveryGetter = new DeliveryGetter(this);
+            deliveryGetter.call(new onDeliveryListener() {
+                @Override
+                public void onDelivery(List<Delivery> deliveryList) {
+                    addMarkers(deliveryList);
+                }
+            });
+        }
         googleMap.getUiSettings().setMyLocationButtonEnabled(true);
 
         //Initialize Google Play Services
@@ -193,6 +217,15 @@ public class mapActivity extends AppCompatActivity
 
     }
 
+    private void addMarkers(List<Delivery> deliveries) {
+
+        for(Delivery delivery : deliveries){
+            Log.i(TAG,"addMarkers called");
+            mGoogleMap.addMarker(new MarkerOptions().position(delivery.getMapLocation().getLatLng()));
+        }
+
+    }
+
     public LatLng toLatLng(Location location){
 
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
@@ -200,7 +233,7 @@ public class mapActivity extends AppCompatActivity
         return latLng;
     }
 
-    private void drawSelected() {
+    private void drawSelectedPolyline() {
 
         GoogleDirection.withServerKey("AIzaSyAY5I_s7St4sbEqQsUO8ZRwCADK5Kb6pKc")
                 .from(toLatLng(mLastLocation))
@@ -290,10 +323,10 @@ public class mapActivity extends AppCompatActivity
                 mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16));
                 if(currentDelivery!=null){
                     updateMapBounds(mLastLocation, currentDelivery.getMapLocation().getLatLng());
+                    drawSelectedPolyline();
                 }
             }
-            if(currentDelivery!=null)
-                drawSelected();
+
         }
     };
 

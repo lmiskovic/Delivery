@@ -15,7 +15,7 @@ public class TokenManager {
         this.editor = prefs.edit();
     }
 
-    static synchronized TokenManager getInstance(SharedPreferences prefs){
+    public static synchronized TokenManager getInstance(SharedPreferences prefs){
         if(INSTANCE == null){
             INSTANCE = new TokenManager(prefs);
         }
