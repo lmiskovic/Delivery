@@ -8,6 +8,8 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.View;
+import android.widget.ProgressBar;
 
 import com.example.luka.delivery.entities.Delivery;
 import com.example.luka.delivery.entities.DeliveryResponse;
@@ -37,7 +39,7 @@ public class deliveryActivity extends AppCompatActivity {
     List<Delivery> deliveryList;
 
     @BindView(R.id.recyclerView) RecyclerView recyclerView;
-
+    @BindView(R.id.progressBar3) ProgressBar progressBar;
     private static final String TAG = "deliveryActivity";
 
     @Override
@@ -47,26 +49,21 @@ public class deliveryActivity extends AppCompatActivity {
 
         ButterKnife.bind(this);
 
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-        tokenManager = TokenManager.getInstance((getSharedPreferences("prefs", MODE_PRIVATE)));
-
-        if(tokenManager.getToken()==null){
-            startActivity(new Intent(deliveryActivity.this, loginActivity.class));
-            finish();
-        }
-
-        service = RetrofitBuilder.createServiceWithAuth(ApiService.class, tokenManager);
-
         DeliveryGetter deliveryGetter = new DeliveryGetter(this);
         deliveryGetter.call(new onDeliveryListener() {
             @Override
             public void onDelivery(List<Delivery> deliveryList) {
+
+                recyclerView.setHasFixedSize(true);
+                recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
+
+                service = RetrofitBuilder.createServiceWithAuth(ApiService.class, tokenManager);
+
                 //creating recyclerview adapter
                 deliveryAdapter adapter = new deliveryAdapter(getApplicationContext(), deliveryList);
                 //setting adapter to recyclerview
-                recyclerView.setAdapter(adapter);            }
+                recyclerView.setAdapter(adapter);
+            }
         });
     }
 }

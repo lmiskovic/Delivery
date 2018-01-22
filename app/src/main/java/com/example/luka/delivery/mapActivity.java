@@ -1,13 +1,9 @@
 package com.example.luka.delivery;
 
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.location.Address;
-import android.location.Geocoder;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
@@ -35,12 +31,8 @@ import com.akexorcist.googledirection.GoogleDirection;
 import com.akexorcist.googledirection.model.Direction;
 import com.akexorcist.googledirection.util.DirectionConverter;
 import com.example.luka.delivery.entities.Delivery;
-import com.example.luka.delivery.entities.DeliveryResponse;
-import com.example.luka.delivery.entities.MapLocation;
 import com.example.luka.delivery.entities.onDeliveryListener;
-import com.example.luka.delivery.network.ApiService;
 import com.example.luka.delivery.network.DeliveryGetter;
-import com.example.luka.delivery.network.RetrofitBuilder;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -57,15 +49,11 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class mapActivity extends AppCompatActivity
         implements OnMapReadyCallback,
@@ -85,6 +73,7 @@ public class mapActivity extends AppCompatActivity
     PolylineOptions polyline;
     private boolean bottomSheetCollapsed;
     private static final String TAG = "mapActivity";
+    TokenManager tokenManager;
 
     @BindView(R.id.sheetTextDeliveryAdress) TextView sheetTextViewDeliveryAddress;
     @BindView(R.id.sheetTextCustomerName) TextView sheetTextViewCustomerName;
@@ -100,8 +89,8 @@ public class mapActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
         ButterKnife.bind(this);
-        bottomSheetCollapsed = true;
 
+        bottomSheetCollapsed = true;
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         mapFrag = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -113,21 +102,20 @@ public class mapActivity extends AppCompatActivity
 
         navigationView.setNavigationItemSelectedListener(this);
 
+        currentDelivery = getIntent().getParcelableExtra("Delivery");
+
         //View hView = navigationView.getHeaderView(0);
 
         //TextView nav_user = hView.findViewById(R.id.nav_username);
 
         //nav_user.setText(email);
 
-        currentDelivery = getIntent().getParcelableExtra("Delivery");
-
         if (currentDelivery!=null){
+
             sheetTextViewDeliveryAddress.setText(currentDelivery.getDeliveryAddress());
             sheetTextViewCustomerName.setText(currentDelivery.getCustomerName());
             sheetTextViewContactPhoneNumber.setText(currentDelivery.getContactPhoneNumber());
             sheetTextViewNote.setText(currentDelivery.getNote());
-
-            bottomSheet.setVisibility(View.VISIBLE);
 
             ViewTreeObserver vto = bottomSheet.getViewTreeObserver();
 
@@ -135,14 +123,12 @@ public class mapActivity extends AppCompatActivity
                 @Override
                 public void onGlobalLayout() {
 
+                    bottomSheet.setVisibility(View.VISIBLE);
+
                     visibleRelativeLayoutHeight = visibleRelativeLayout.getHeight();
                     sheetHeight = bottomSheet.getHeight();
                     BottomSheetBehavior behavior = BottomSheetBehavior.from((View) bottomSheet);
                     behavior.setPeekHeight(visibleRelativeLayoutHeight);
-                    if (bottomSheetCollapsed){
-                        mGoogleMap.setPadding(0,0,0,visibleRelativeLayoutHeight);
-                    } else{
-                    }
 
                     behavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
                         @Override
@@ -182,6 +168,10 @@ public class mapActivity extends AppCompatActivity
         mGoogleMap = googleMap;
         mGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 
+        if (bottomSheetCollapsed){
+            mGoogleMap.setPadding(0,0,0,visibleRelativeLayoutHeight);
+        }
+
         if(currentDelivery==null){
 
             DeliveryGetter deliveryGetter = new DeliveryGetter(this);
@@ -189,6 +179,7 @@ public class mapActivity extends AppCompatActivity
                 @Override
                 public void onDelivery(List<Delivery> deliveryList) {
                     addMarkers(deliveryList);
+                    updateBoundsAll(deliveryList);
                 }
             });
         }
@@ -210,11 +201,6 @@ public class mapActivity extends AppCompatActivity
             buildGoogleApiClient();
             mGoogleMap.setMyLocationEnabled(true);
         }
-
-        //44.4287103,14.1629229   --> croatia LatLng
-        LatLng starter = new LatLng(44.4287103,14.1629229);
-        mGoogleMap.animateCamera(CameraUpdateFactory.newLatLng(starter));
-
     }
 
     private void addMarkers(List<Delivery> deliveries) {
@@ -299,7 +285,18 @@ public class mapActivity extends AppCompatActivity
 
     }
 
-    public void updateMapBounds(Location mLastLocation, LatLng currentDeliveryLatLng){
+    public void updateBoundsAll(List<Delivery> deliveryList){
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+
+        for(int i = 0; i < deliveryList.size(); i++){
+            builder.include(deliveryList.get(i).getMapLocation().getLatLng());
+        }
+
+        LatLngBounds bounds = builder.build();
+        mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 400));
+    }
+
+    public void updateMapBoundsCurrent(Location mLastLocation, LatLng currentDeliveryLatLng){
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
         builder.include(toLatLng(mLastLocation));
         builder.include(currentDeliveryLatLng);
@@ -314,19 +311,11 @@ public class mapActivity extends AppCompatActivity
                 Log.i("MapsActivity", "Location: " + location.getLatitude() + " " + location.getLongitude());
                 mLastLocation = location;
 
-                // TODO add redraw polyline
-
-                //Place current location marker
-                LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-
-                //move map camera
-                mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16));
                 if(currentDelivery!=null){
-                    updateMapBounds(mLastLocation, currentDelivery.getMapLocation().getLatLng());
+                    updateMapBoundsCurrent(mLastLocation, currentDelivery.getMapLocation().getLatLng());
                     drawSelectedPolyline();
                 }
             }
-
         }
     };
 
@@ -427,5 +416,13 @@ public class mapActivity extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        mapFrag.onSaveInstanceState(outState);
+    }
+
 
 }
