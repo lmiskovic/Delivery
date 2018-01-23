@@ -23,6 +23,7 @@ import com.pnikosis.materialishprogress.ProgressWheel;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -44,6 +45,9 @@ public class deliveryActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        String locale = getResources().getConfiguration().locale.getLanguage();
+Log.i(TAG,"LOCALE: " + locale);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_delivery);
 

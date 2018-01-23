@@ -39,6 +39,17 @@
             android:layout_gravity="start"
             app:headerLayout="@layout/nav_header"
             app:menu="@menu/drawer_menu">
+
+            <Button
+                android:id="@+id/btn_logout"
+                android:textColor="@color/colorPrimaryText"
+                android:background="@color/colorPrimaryDark"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/logout"
+                android:textStyle="bold"
+                android:layout_gravity="bottom"/>
+
         </android.support.design.widget.NavigationView>
 
     </android.support.v4.widget.DrawerLayout>

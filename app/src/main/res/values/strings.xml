@@ -1,21 +1,20 @@
 <resources>
     <string name="app_name">Delivery</string>
 
-    <string-array name="roles">
-        <item>Dostavljač</item>
-        <item>Dispečer</item>
-    </string-array>
-
     <string name="err_name">Polje ime je obvezno.</string>
     <string name="err_email">Email mora biti valjana email adresa.</string>
     <string name="err_password">Lozinka mora sadržavati najmanje 6 znakova.</string>
 
-    <string name="my_profile">Moj profil</string>
-    <string name="deliveries">Nalozi</string>
-    <string name="route">Optimiziraj rutu</string>
-    <string name="sign_out">Odjavi se</string>
-
-    <string name="postActivityTitle">Delivery map</string>
+    <string name="my_profile">My profile</string>
+    <string name="deliveries">Orders</string>
+    <string name="route">Optimize route</string>
+    <string name="sign_out">Logout</string>
+    <string name="about">About</string>
 
     <string name="deliveryMessage">If there are any deliveries they will be shown here.</string>
+
+    <string name="yes">Yes</string>
+    <string name="cancel">Cancel</string>
+    <string name="logout">Logout</string>
+    <string name="logout_message">Do you realy want to logout?</string>
 </resources>

@@ -10,6 +10,7 @@ import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.moshi.MoshiConverterFactory;
 
@@ -62,11 +63,8 @@ public class RetrofitBuilder {
         OkHttpClient newClient = client.newBuilder().addInterceptor(new Interceptor() {
             @Override
             public Response intercept(Chain chain) throws IOException {
-
                 Request request = chain.request();
-
                 Request.Builder builder = request.newBuilder();
-
                 if(tokenManager.getToken().getAccessToken() != null){
                     builder.addHeader("Authorization", "Bearer " + tokenManager.getToken().getAccessToken());
                 }

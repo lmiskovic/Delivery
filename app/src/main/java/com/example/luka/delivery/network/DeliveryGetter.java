@@ -39,7 +39,7 @@ public class DeliveryGetter {
 
     public DeliveryGetter(Context context){
         this.context = context;
-        prefs = context.getSharedPreferences("PREFS", MODE_PRIVATE);
+        prefs = context.getSharedPreferences("prefs", MODE_PRIVATE);
     }
 
     public void call(final onDeliveryListener onDeliveryListener) {
@@ -54,7 +54,6 @@ public class DeliveryGetter {
 
         deliveryList = new ArrayList<>();
 
-
         call = service.deliveries();
 
         call.enqueue(new Callback<DeliveryResponse>() {
@@ -64,6 +63,7 @@ public class DeliveryGetter {
                 Log.w(TAG, "onResponse: " + response);
 
                 if (response.isSuccessful()) {
+
                     for (int i = 0; i < response.body().getData().size(); i++) {
                         deliveryList.add(
                                 new Delivery(

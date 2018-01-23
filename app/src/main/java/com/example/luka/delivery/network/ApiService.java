@@ -1,16 +1,14 @@
 package com.example.luka.delivery.network;
 
-/**
- * Created by luka on 16.7.2017..
- */
-
 import com.example.luka.delivery.entities.AccessToken;
 import com.example.luka.delivery.entities.DeliveryResponse;
+import com.google.android.gms.wearable.DataClient;
 
 import retrofit2.Call;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
+import retrofit2.http.Header;
 import retrofit2.http.POST;
 
 public interface ApiService {
@@ -32,6 +30,11 @@ public interface ApiService {
 
         @GET("deliveries")
         Call<DeliveryResponse> deliveries();
+
+        @POST("logout")
+        @FormUrlEncoded
+        Call<AccessToken> logout(@Field("access_token") AccessToken accessToken);
+
 }
 
 

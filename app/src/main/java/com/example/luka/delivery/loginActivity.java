@@ -1,6 +1,7 @@
 package com.example.luka.delivery;
 
 import android.content.Intent;
+import android.media.session.MediaSession;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -43,13 +44,22 @@ public class loginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        Stetho.initializeWithDefaults(this);
 
         ButterKnife.bind(this);
 
-        Stetho.initializeWithDefaults(this);
-
         service = RetrofitBuilder.createService(ApiService.class);
+
         tokenManager = TokenManager.getInstance(getSharedPreferences("prefs", MODE_PRIVATE));
+
+        Log.i("tokenLog",String.valueOf(tokenManager.getToken().getAccessToken()));
+
+
+        if(tokenManager.getToken().getAccessToken() != null){
+            startActivity(new Intent(loginActivity.this, mapActivity.class));
+            finish();
+        }
+
         //validator = new AwesomeValidation(ValidationStyle.TEXT_INPUT_LAYOUT);
         //setupRules();
 
@@ -73,9 +83,6 @@ public class loginActivity extends AppCompatActivity {
         final String email = editTextEmailLogin.getText().toString();
         String password = editTextPasswordLogin.getText().toString();
 
-        editTextEmailLogin.setError(null);
-        editTextPasswordLogin.setError(null);
-
         call = service.login(email,password);
         call.enqueue(new Callback<AccessToken>() {
             @Override
@@ -85,6 +92,7 @@ public class loginActivity extends AppCompatActivity {
 
                 if (response.isSuccessful()) {
                     tokenManager.saveToken(response.body());
+                    Log.w(TAG, "onResponse: " + response.body());
                     Intent intent = new Intent (loginActivity.this, mapActivity.class);
                     intent.putExtra("usernameMail", email);
                     startActivity(intent);
@@ -142,4 +150,8 @@ public class loginActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onBackPressed() {
+        finishAffinity();
+    }
 }

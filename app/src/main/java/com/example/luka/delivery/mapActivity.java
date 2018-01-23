@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.media.session.MediaSession;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
@@ -21,6 +22,7 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -30,9 +32,12 @@ import com.akexorcist.googledirection.DirectionCallback;
 import com.akexorcist.googledirection.GoogleDirection;
 import com.akexorcist.googledirection.model.Direction;
 import com.akexorcist.googledirection.util.DirectionConverter;
+import com.example.luka.delivery.entities.AccessToken;
 import com.example.luka.delivery.entities.Delivery;
 import com.example.luka.delivery.entities.onDeliveryListener;
+import com.example.luka.delivery.network.ApiService;
 import com.example.luka.delivery.network.DeliveryGetter;
+import com.example.luka.delivery.network.RetrofitBuilder;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -49,11 +54,19 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.logging.HttpLoggingInterceptor;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class mapActivity extends AppCompatActivity
         implements OnMapReadyCallback,
@@ -75,6 +88,10 @@ public class mapActivity extends AppCompatActivity
     private static final String TAG = "mapActivity";
     TokenManager tokenManager;
 
+    ApiService service;
+    Call<AccessToken> call;
+
+
     @BindView(R.id.sheetTextDeliveryAdress) TextView sheetTextViewDeliveryAddress;
     @BindView(R.id.sheetTextCustomerName) TextView sheetTextViewCustomerName;
     @BindView(R.id.sheetTextNote) TextView sheetTextViewNote;
@@ -83,12 +100,16 @@ public class mapActivity extends AppCompatActivity
     @BindView(R.id.navigation_view) NavigationView navigationView;
     @BindView(R.id.bottom_sheet) LinearLayout bottomSheet;
     @BindView(R.id.visibleRelativeLayout) RelativeLayout visibleRelativeLayout;
-
+    @BindView(R.id.DrawerLayout) DrawerLayout drawer;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
         ButterKnife.bind(this);
+
+        tokenManager = TokenManager.getInstance(getSharedPreferences("prefs", MODE_PRIVATE));
+
+        service = RetrofitBuilder.createServiceWithAuth(ApiService.class, tokenManager);
 
         bottomSheetCollapsed = true;
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
@@ -151,7 +172,6 @@ public class mapActivity extends AppCompatActivity
             });
         }
     }
-
 
     @Override
     public void onPause() {
@@ -408,15 +428,36 @@ public class mapActivity extends AppCompatActivity
             startActivity(new Intent(mapActivity.this,deliveryActivity.class));
         } else if (id == R.id.route) {
 
-        } else if (id == R.id.sign_out) {
-
+        }else if (id == R.id.about) {
+            startActivity(new Intent(mapActivity.this,aboutActivity.class));
         }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.DrawerLayout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
 
+    @OnClick(R.id.btn_logout)
+    void logout() {
+
+        drawer.closeDrawer(GravityCompat.START);
+
+
+        tokenManager = TokenManager.getInstance(getSharedPreferences("prefs",MODE_PRIVATE));
+        call = service.logout(tokenManager.getToken());
+        call.enqueue(new Callback<AccessToken>() {
+            @Override
+            public void onResponse(Call<AccessToken> call, Response<AccessToken> response) {
+                Log.i(TAG, "logout response: " + response.code());
+                getSharedPreferences("prefs",MODE_PRIVATE).edit().clear().apply();
+                startActivity(new Intent(mapActivity.this,loginActivity.class));
+            }
+
+            @Override
+            public void onFailure(Call<AccessToken> call, Throwable t) {
+                Log.i(TAG, "logout failed");
+            }
+        });
+    }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
@@ -424,5 +465,8 @@ public class mapActivity extends AppCompatActivity
         mapFrag.onSaveInstanceState(outState);
     }
 
-
+    @Override
+    public void onBackPressed() {
+        finish();
+    }
 }
