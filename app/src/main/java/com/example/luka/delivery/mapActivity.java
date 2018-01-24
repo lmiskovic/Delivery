@@ -112,6 +112,7 @@ public class mapActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_map);
         ButterKnife.bind(this);
 
@@ -445,7 +446,7 @@ public class mapActivity extends AppCompatActivity
             } else if (id == R.id.deliveries) {
                 startActivity(new Intent(mapActivity.this, deliveryActivity.class));
             } else if (id == R.id.route) {
-
+                startActivity(new Intent(mapActivity.this, optimizeActivity.class));
             } else if (id == R.id.about) {
                 startActivity(new Intent(mapActivity.this, aboutActivity.class));
             }
@@ -457,22 +458,40 @@ public class mapActivity extends AppCompatActivity
         @OnClick(R.id.btn_logout)
         void logout () {
 
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setMessage(R.string.logout_message)
+                    .setTitle(R.string.logout);
+
+            builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    tokenManager = TokenManager.getInstance(getSharedPreferences("prefs", MODE_PRIVATE));
+                    call = service.logout(tokenManager.getToken());
+                    call.enqueue(new Callback<AccessToken>() {
+                        @Override
+                        public void onResponse(Call<AccessToken> call, Response<AccessToken> response) {
+                            getSharedPreferences("prefs", MODE_PRIVATE).edit().clear().apply();
+                            startActivity(new Intent(mapActivity.this, loginActivity.class));
+                        }
+
+                        @Override
+                        public void onFailure(Call<AccessToken> call, Throwable t) {
+
+                        }
+                    });
+                }
+            });
+
+            builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    // User cancelled the dialog
+                }
+            });
+
+            AlertDialog dialog = builder.create();
+            dialog.show();
             drawer.closeDrawer(GravityCompat.START);
 
 
-            tokenManager = TokenManager.getInstance(getSharedPreferences("prefs", MODE_PRIVATE));
-            call = service.logout(tokenManager.getToken());
-            call.enqueue(new Callback<AccessToken>() {
-                @Override
-                public void onResponse(Call<AccessToken> call, Response<AccessToken> response) {
-                    getSharedPreferences("prefs", MODE_PRIVATE).edit().clear().apply();
-                    startActivity(new Intent(mapActivity.this, loginActivity.class));
-                }
-
-                @Override
-                public void onFailure(Call<AccessToken> call, Throwable t) {
-                }
-            });
         }
 
         @Override
