@@ -1,5 +1,8 @@
 package com.example.luka.delivery;
 
+import android.app.ProgressDialog;
+import android.content.Context;
+
 import com.example.luka.delivery.entities.ApiError;
 import com.example.luka.delivery.network.RetrofitBuilder;
 

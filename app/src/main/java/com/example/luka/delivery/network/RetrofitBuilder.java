@@ -5,6 +5,7 @@ import com.example.luka.delivery.TokenManager;
 import com.facebook.stetho.okhttp3.StethoInterceptor;
 
 import java.io.IOException;
+import java.util.concurrent.Executors;
 
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
@@ -48,6 +49,7 @@ public class RetrofitBuilder {
     private static Retrofit buildRetrofit(OkHttpClient client){
         return new Retrofit.Builder()
                 .baseUrl(BASE_URL)
+                .callbackExecutor(Executors.newSingleThreadExecutor())
                 .client(client)
                 .addConverterFactory(MoshiConverterFactory.create())
                 .build();

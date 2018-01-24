@@ -6,7 +6,7 @@
     <string name="err_password">Lozinka mora sadržavati najmanje 6 znakova.</string>
 
     <string name="my_profile">My profile</string>
-    <string name="deliveries">Orders</string>
+    <string name="deliveries">Deliveries</string>
     <string name="route">Optimize route</string>
     <string name="sign_out">Logout</string>
     <string name="about">About</string>

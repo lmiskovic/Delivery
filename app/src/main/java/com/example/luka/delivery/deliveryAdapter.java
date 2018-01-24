@@ -2,10 +2,7 @@ package com.example.luka.delivery;
 
 import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,9 +14,6 @@ import com.google.android.gms.maps.MapView;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
 
 
 public class deliveryAdapter extends RecyclerView.Adapter<DeliveryViewHolder> {

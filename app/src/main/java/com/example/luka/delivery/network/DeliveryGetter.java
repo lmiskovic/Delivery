@@ -1,15 +1,15 @@
 package com.example.luka.delivery.network;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.location.Address;
 import android.location.Geocoder;
+import android.os.Handler;
 import android.util.Log;
 
 import com.example.luka.delivery.TokenManager;
-import com.example.luka.delivery.deliveryActivity;
-import com.example.luka.delivery.deliveryAdapter;
 import com.example.luka.delivery.entities.Delivery;
 import com.example.luka.delivery.entities.DeliveryResponse;
 import com.example.luka.delivery.entities.MapLocation;
@@ -25,6 +25,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 import static android.content.Context.MODE_PRIVATE;
+import static com.google.android.gms.internal.zzahn.runOnUiThread;
 
 public class DeliveryGetter {
 
@@ -60,13 +61,15 @@ public class DeliveryGetter {
             @Override
             public void onResponse(Call<DeliveryResponse> call, Response<DeliveryResponse> response) {
 
-                Log.w(TAG, "onResponse: " + response);
-
                 if (response.isSuccessful()) {
 
+                    Log.i(TAG,"RESPONSE");
+
                     for (int i = 0; i < response.body().getData().size(); i++) {
+                        Log.i(TAG,"CONVERTING...");
                         deliveryList.add(
-                                new Delivery(
+
+                        new Delivery(
                                         response.body().getData().get(i).getId(),
                                         response.body().getData().get(i).getCreated_at(),
                                         response.body().getData().get(i).getUpdated_at(),
@@ -78,7 +81,12 @@ public class DeliveryGetter {
                                         response.body().getData().get(i).getMapLocation()
                                 ));
 
+                        Log.i(TAG,"CONVERTING DONE");
+
+
                         if (deliveryList.get(i).getMapLocation() == null) {
+                            Log.i(TAG,"GEOCODING...");
+
                             Geocoder geocoder = new Geocoder(context);
 
                             List<Address> addresses = null;
@@ -92,30 +100,22 @@ public class DeliveryGetter {
                                 double longitude = addresses.get(0).getLongitude();
                                 deliveryList.get(i).setMapLocation(new MapLocation(latitude, longitude));
                             }
+
+                            Log.i(TAG,"GEOCODING DONE");
+
                         }
-
-                        Log.i(TAG, deliveryList.get(i).getId() + "\n"
-                                + deliveryList.get(i).getCreated_at() + "\n"
-                                + deliveryList.get(i).getUpdated_at() + "\n"
-                                + deliveryList.get(i).getUser_id() + "\n"
-                                + deliveryList.get(i).getDeliveryAddress() + "\n"
-                                + deliveryList.get(i).getCustomerName() + "\n"
-                                + deliveryList.get(i).getContactPhoneNumber() + "\n"
-                                + deliveryList.get(i).getNote() + "\n"
-                                + deliveryList.get(i).getMapLocation().getLatLng().latitude + " "
-                                + deliveryList.get(i).getMapLocation().getLatLng().longitude + "\n");
                     }
-
-                    /*String deliveryList = response.body().getData().get(0).getId() + "\n"
-                            + response.body().getData().get(0).getCustomerName() + "\n"
-                            + response.body().getData().get(0).getContactPhoneNumber() + "\n"
-                            + response.body().getData().get(0).getDeliveryAddress() + "\n"
-                            + response.body().getData().get(0).getNote() + "\n";*/
-                    //deliveriesList.setText(deliveryList);
                 } else {
                     tokenManager.deleteToken();
                 }
-                onDeliveryListener.onDelivery(deliveryList);
+
+                Handler mainHandler = new Handler(context.getMainLooper());
+                mainHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        onDeliveryListener.onDelivery(deliveryList);
+                    }
+                });
             }
 
             @Override
