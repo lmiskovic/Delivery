@@ -1,6 +1,5 @@
 package com.example.luka.delivery;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -17,9 +16,9 @@ import java.util.List;
 public class optimizeDeliveryAdapter extends RecyclerView.Adapter<OptimizeDeliveryViewHolder>
         implements itemTouchHelperAdapter {
 
-    private List<Delivery> deliveryList;
-    Context context;
     private final OnStartDragListener mDragStartListener;
+    Context context;
+    private List<Delivery> deliveryList;
 
     public optimizeDeliveryAdapter(Context context, List<Delivery> deliveryList, OnStartDragListener dragStartListener) {
         this.deliveryList = deliveryList;
@@ -51,7 +50,6 @@ public class optimizeDeliveryAdapter extends RecyclerView.Adapter<OptimizeDelive
                 return false;
             }
         });
-
     }
 
     @Override
