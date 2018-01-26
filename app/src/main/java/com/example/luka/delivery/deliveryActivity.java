@@ -27,7 +27,6 @@ public class deliveryActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.activity_delivery);
         ButterKnife.bind(this);
-
         super.onCreate(savedInstanceState);
 
         mProgressDialog = new ProgressDialog(this);

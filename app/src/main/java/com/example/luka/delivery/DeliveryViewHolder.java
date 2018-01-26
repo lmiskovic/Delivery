@@ -30,7 +30,6 @@ public class DeliveryViewHolder extends RecyclerView.ViewHolder implements OnMap
     protected GoogleMap mGoogleMap;
     protected MapLocation mMapLocation;
     public View view;
-    String TAG = "DeliveryViewHolder";
 
     public DeliveryViewHolder(final Context context, View itemView) {
         super(itemView);
@@ -43,12 +42,10 @@ public class DeliveryViewHolder extends RecyclerView.ViewHolder implements OnMap
 
         mapView.onCreate(null);
         mapView.getMapAsync(this);
-
     }
 
     public void setMapLocation(MapLocation mapLocation) {
         mMapLocation = mapLocation;
-        Log.i("setMapLocation", mapLocation.getLatLng().latitude + " " + mapLocation.getLatLng().longitude);
         // If the map is ready, update its content.
         if (mGoogleMap != null) {
             updateMapContents();
@@ -73,7 +70,6 @@ public class DeliveryViewHolder extends RecyclerView.ViewHolder implements OnMap
         mGoogleMap.clear();
         // Update the mapView feature data and camera position.
         mGoogleMap.addMarker(new MarkerOptions().position(mMapLocation.getLatLng()));
-
         CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(mMapLocation.getLatLng(), 14f);
         mGoogleMap.moveCamera(cameraUpdate);
     }

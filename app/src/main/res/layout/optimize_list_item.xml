@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/colorPrimaryDark"
+    android:orientation="vertical"
+    android:paddingHorizontal="16dp"
+    android:paddingTop="8dp">
+
+    <RelativeLayout
+        android:id="@+id/content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/position"
+            android:layout_width="32dp"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:gravity="center"
+            android:text="999"
+            android:textColor="@color/colorPrimaryText"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/Address"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="8dp"
+            android:layout_toRightOf="@id/position"
+            android:text="Address: "
+            android:textColor="@color/colorPrimaryText"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/textDeliveryAdress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@id/textDeliveryAdress"
+            android:layout_toRightOf="@id/Address"
+            android:textColor="@color/colorPrimaryText" />
+
+        <TextView
+            android:id="@+id/CustomerName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/Address"
+            android:layout_marginLeft="8dp"
+            android:layout_toRightOf="@id/position"
+            android:text="Custommer name: "
+            android:textColor="@color/colorPrimaryText"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/textCustomerName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/textDeliveryAdress"
+            android:layout_toRightOf="@id/CustomerName"
+            android:textColor="@color/colorPrimaryText" />
+
+        <TextView
+            android:id="@+id/ContactPhone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/textCustomerName"
+            android:layout_marginLeft="8dp"
+            android:layout_toRightOf="@id/position"
+            android:text="Contact phone number: "
+            android:textColor="@color/colorPrimaryText"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/textContactPhone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/textCustomerName"
+            android:layout_toRightOf="@id/ContactPhone"
+            android:textColor="@color/colorPrimaryText" />
+
+        <TextView
+            android:id="@+id/Note"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/ContactPhone"
+            android:layout_marginLeft="8dp"
+            android:layout_toRightOf="@id/position"
+            android:text="Note: "
+            android:textColor="@color/colorPrimaryText"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/textNote"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/textContactPhone"
+            android:layout_toRightOf="@id/Note"
+            android:textColor="@color/colorPrimaryText" />
+
+        <ImageView
+            android:id="@+id/imageReorder"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:srcCompat="@drawable/ic_reorder_image" />
+
+    </RelativeLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:layout_below="@id/content"
+        android:layout_marginTop="8dp"
+        android:background="@color/colorPrimaryText" />
+
+</RelativeLayout>
