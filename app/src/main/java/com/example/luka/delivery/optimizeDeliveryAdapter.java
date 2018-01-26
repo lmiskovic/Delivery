@@ -11,6 +11,7 @@ import com.example.luka.delivery.entities.Delivery;
 import com.example.luka.delivery.itemTouchHelper.OnStartDragListener;
 import com.example.luka.delivery.itemTouchHelper.itemTouchHelperAdapter;
 
+import java.util.Collections;
 import java.util.List;
 
 public class optimizeDeliveryAdapter extends RecyclerView.Adapter<OptimizeDeliveryViewHolder>
@@ -39,8 +40,7 @@ public class optimizeDeliveryAdapter extends RecyclerView.Adapter<OptimizeDelive
         holder.textViewCustomerName.setText(deliveryList.get(position).getCustomerName());
         holder.textViewContactPhoneNumber.setText(deliveryList.get(position).getContactPhoneNumber());
         holder.textViewNote.setText(deliveryList.get(position).getNote());
-        holder.textViewPosition.setText(String.valueOf(position));
-
+        holder.textViewPosition.setText(String.valueOf(position + 1));
         holder.imageReorder.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -59,10 +59,16 @@ public class optimizeDeliveryAdapter extends RecyclerView.Adapter<OptimizeDelive
     }
 
     @Override
+    public void onDrop() {
+        notifyDataSetChanged();
+    }
+
+    @Override
     public void onItemMove(int fromPosition, int toPosition) {
         Delivery prev = deliveryList.remove(fromPosition);
         deliveryList.add(toPosition > fromPosition ? toPosition - 1 : toPosition, prev);
         notifyItemMoved(fromPosition, toPosition);
+        Collections.swap(deliveryList, fromPosition, toPosition);
     }
 
     @Override

@@ -8,10 +8,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.luka.delivery.entities.Delivery;
-import com.example.luka.delivery.entities.MapLocation;
 import com.google.android.gms.maps.MapView;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -66,4 +64,7 @@ public class deliveryAdapter extends RecyclerView.Adapter<DeliveryViewHolder> {
         return deliveryList.size();
     }
 
+    private void drawPolyline() {
+
+    }
 }

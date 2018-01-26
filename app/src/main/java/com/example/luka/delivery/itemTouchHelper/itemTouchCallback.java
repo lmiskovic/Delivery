@@ -6,6 +6,8 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 public class itemTouchCallback extends ItemTouchHelper.Callback {
 
     private final itemTouchHelperAdapter mAdapter;
+    private Integer mFrom = null;
+    private Integer mTo = null;
 
     public itemTouchCallback(itemTouchHelperAdapter adapter) {
         mAdapter = adapter;
@@ -30,7 +32,12 @@ public class itemTouchCallback extends ItemTouchHelper.Callback {
 
     @Override
     public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder source, RecyclerView.ViewHolder target) {
+        if (mFrom == null)
+            mFrom = source.getAdapterPosition();
+        mTo = target.getAdapterPosition();
+
         mAdapter.onItemMove(source.getAdapterPosition(), target.getAdapterPosition());
+
         return true;
     }
 
@@ -41,21 +48,26 @@ public class itemTouchCallback extends ItemTouchHelper.Callback {
 
     @Override
     public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
+
         if (actionState != ItemTouchHelper.ACTION_STATE_IDLE) {
             itemTouchHelperViewHolder itemViewHolder = (itemTouchHelperViewHolder) viewHolder;
             itemViewHolder.onItemSelected();
         }
-
         super.onSelectedChanged(viewHolder, actionState);
     }
 
-
-
     @Override
     public void clearView(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
-        super.clearView(recyclerView, viewHolder);
 
+        super.clearView(recyclerView, viewHolder);
         itemTouchHelperViewHolder itemViewHolder = (itemTouchHelperViewHolder) viewHolder;
         itemViewHolder.onItemClear();
+
+        if (mFrom != null && mTo != null)
+            mAdapter.onDrop();
+
+        // clear saved positions
+        mFrom = mTo = null;
+
     }
 }

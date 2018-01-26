@@ -21,8 +21,9 @@ import butterknife.ButterKnife;
 
 public class optimizeActivity extends AppCompatActivity {
 
-    @BindView(R.id.optimizeRecyclerView) RecyclerView optimizeRecyclerView;
     private static final String TAG = "optimizeActivity";
+    @BindView(R.id.optimizeRecyclerView)
+    RecyclerView optimizeRecyclerView;
     ProgressDialog mProgressDialog;
     private ItemTouchHelper mItemTouchHelper;
 
@@ -72,5 +73,4 @@ public class optimizeActivity extends AppCompatActivity {
         });
 
     }
-
 }
