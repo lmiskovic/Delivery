@@ -17,4 +17,7 @@
     <string name="cancel">Cancel</string>
     <string name="logout">Logout</string>
     <string name="logout_message">Do you realy want to logout?</string>
+    <string name="confirmandproceed">CONFIRM ROUTE\nand proceed to navigation</string>
+    <string name="previewRoute">PREVIEW ROUTE</string>
+
 </resources>

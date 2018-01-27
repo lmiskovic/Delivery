@@ -19,7 +19,6 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -70,25 +69,20 @@ public class mapActivity extends AppCompatActivity
         GoogleApiClient.OnConnectionFailedListener,
         NavigationView.OnNavigationItemSelectedListener {
 
+    public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
+    private static final String TAG = "mapActivity";
     GoogleMap mGoogleMap;
     SupportMapFragment mapFrag;
     LocationRequest mLocationRequest;
     GoogleApiClient mGoogleApiClient;
     Location mLastLocation;
     FusedLocationProviderClient mFusedLocationClient;
-    private int visibleRelativeLayoutHeight;
-    private int sheetHeight;
     Delivery currentDelivery;
     PolylineOptions polyline;
-    private boolean bottomSheetCollapsed;
-    private static final String TAG = "mapActivity";
-
     ProgressDialog mProgressDialog;
-
     TokenManager tokenManager;
     ApiService service;
     Call<AccessToken> call;
-
     @BindView(R.id.sheetTextDeliveryAdress)
     TextView sheetTextViewDeliveryAddress;
     @BindView(R.id.sheetTextCustomerName)
@@ -97,7 +91,6 @@ public class mapActivity extends AppCompatActivity
     TextView sheetTextViewNote;
     @BindView(R.id.sheetTextContactPhone)
     TextView sheetTextViewContactPhoneNumber;
-
     @BindView(R.id.navigation_view)
     NavigationView navigationView;
     @BindView(R.id.bottom_sheet)
@@ -106,8 +99,23 @@ public class mapActivity extends AppCompatActivity
     RelativeLayout visibleRelativeLayout;
     @BindView(R.id.DrawerLayout)
     DrawerLayout drawer;
-
     SharedPreferences sharedPreferences;
+    LocationCallback mLocationCallback = new LocationCallback() {
+        @Override
+        public void onLocationResult(LocationResult locationResult) {
+            for (Location location : locationResult.getLocations()) {
+                mLastLocation = location;
+
+                if (currentDelivery != null) {
+                    updateMapBoundsCurrent(mLastLocation, currentDelivery.getMapLocation().getLatLng());
+                    drawSelectedPolyline();
+                }
+            }
+        }
+    };
+    private int visibleRelativeLayoutHeight;
+    private int sheetHeight;
+    private boolean bottomSheetCollapsed;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -185,7 +193,8 @@ public class mapActivity extends AppCompatActivity
             });
         }
     }
-        @Override
+
+    @Override
         public void onPause () {
             super.onPause();
             //stop location updates when Activity is no longer active
@@ -342,20 +351,6 @@ public class mapActivity extends AppCompatActivity
             mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 400));
         }
 
-        LocationCallback mLocationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                for (Location location : locationResult.getLocations()) {
-                    mLastLocation = location;
-
-                    if (currentDelivery != null) {
-                        updateMapBoundsCurrent(mLastLocation, currentDelivery.getMapLocation().getLatLng());
-                        drawSelectedPolyline();
-                    }
-                }
-            }
-        };
-
         @Override
         public void onConnectionSuspended ( int i){
         }
@@ -363,8 +358,6 @@ public class mapActivity extends AppCompatActivity
         @Override
         public void onConnectionFailed (ConnectionResult connectionResult){
         }
-
-        public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
 
         private void checkLocationPermission () {
             if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)

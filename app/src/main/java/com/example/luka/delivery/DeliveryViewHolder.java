@@ -2,7 +2,6 @@ package com.example.luka.delivery;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -20,16 +19,15 @@ import butterknife.ButterKnife;
 
 public class DeliveryViewHolder extends RecyclerView.ViewHolder implements OnMapReadyCallback {
 
+    public View view;
+    protected GoogleMap mGoogleMap;
+    protected MapLocation mMapLocation;
     @BindView(R.id.textDeliveryAdress) TextView textViewDeliveryAddress;
     @BindView(R.id.textCustomerName) TextView textViewCustomerName;
     @BindView(R.id.textNote) TextView textViewNote;
     @BindView(R.id.textContactPhone) TextView textViewContactPhoneNumber;
     @BindView(R.id.mapLite) MapView mapView;
-
     private Context context;
-    protected GoogleMap mGoogleMap;
-    protected MapLocation mMapLocation;
-    public View view;
 
     public DeliveryViewHolder(final Context context, View itemView) {
         super(itemView);
@@ -73,5 +71,4 @@ public class DeliveryViewHolder extends RecyclerView.ViewHolder implements OnMap
         CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(mMapLocation.getLatLng(), 14f);
         mGoogleMap.moveCamera(cameraUpdate);
     }
-
 }
