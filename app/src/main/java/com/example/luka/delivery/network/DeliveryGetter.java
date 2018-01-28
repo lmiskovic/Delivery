@@ -1,6 +1,5 @@
 package com.example.luka.delivery.network;
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -25,18 +24,16 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 import static android.content.Context.MODE_PRIVATE;
-import static com.google.android.gms.internal.zzahn.runOnUiThread;
 
 public class DeliveryGetter {
 
     TokenManager tokenManager;
-
+    SharedPreferences prefs;
     private ApiService service;
     private Call<DeliveryResponse> call;
     private List<Delivery> deliveryList;
     private String TAG = "deliveryGetter";
     private Context context;
-    SharedPreferences prefs;
 
     public DeliveryGetter(Context context){
         this.context = context;
@@ -63,10 +60,7 @@ public class DeliveryGetter {
 
                 if (response.isSuccessful()) {
 
-                    Log.i(TAG,"RESPONSE");
-
                     for (int i = 0; i < response.body().getData().size(); i++) {
-                        Log.i(TAG,"CONVERTING...");
                         deliveryList.add(
 
                         new Delivery(
@@ -81,11 +75,8 @@ public class DeliveryGetter {
                                         response.body().getData().get(i).getMapLocation()
                                 ));
 
-                        Log.i(TAG,"CONVERTING DONE");
-
 
                         if (deliveryList.get(i).getMapLocation() == null) {
-                            Log.i(TAG,"GEOCODING...");
 
                             Geocoder geocoder = new Geocoder(context);
 
@@ -100,9 +91,6 @@ public class DeliveryGetter {
                                 double longitude = addresses.get(0).getLongitude();
                                 deliveryList.get(i).setMapLocation(new MapLocation(latitude, longitude));
                             }
-
-                            Log.i(TAG,"GEOCODING DONE");
-
                         }
                     }
                 } else {
