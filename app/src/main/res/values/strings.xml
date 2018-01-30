@@ -16,8 +16,9 @@
     <string name="yes">Yes</string>
     <string name="cancel">Cancel</string>
     <string name="logout">Logout</string>
-    <string name="logout_message">Do you realy want to logout?</string>
+    <string name="logout_message">Do you really want to logout?</string>
     <string name="confirmandproceed">CONFIRM ROUTE\nand proceed to navigation</string>
     <string name="previewRoute">PREVIEW ROUTE</string>
+    <string name="zoomToAll">SHOW ALL</string>
 
 </resources>

@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -14,7 +15,9 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
@@ -59,6 +62,10 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
     LinearLayout bottomSheetMap;
     @BindView(R.id.visibleArrows)
     RelativeLayout visibleArrows;
+    @BindView(R.id.optimizeActivityLayout)
+    ConstraintLayout optimizeActivityLayout;
+    @BindView(R.id.btnViewAll)
+    Button btnViewAll;
 
     ProgressDialog mProgressDialog;
     SupportMapFragment mapFrag;
@@ -71,8 +78,7 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
     private LatLng endPoint;
     private PolylineOptions polyline;
     private FusedLocationProviderClient mFusedLocationClient;
-    private View myContentsView;
-
+    private boolean sorted;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,9 +111,6 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
         mLastLocation.setLatitude(lat);
         mLastLocation.setLongitude(lng);
 
-        Log.i("currentlat", String.valueOf(mLastLocation.getLatitude()));
-        Log.i("currentlng", String.valueOf(mLastLocation.getLongitude()));
-
         /*mLastLocation.setLatitude(lat);
         mLastLocation.setLatitude(lng);*/
 
@@ -130,10 +133,10 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
                         // Got last known location. In some rare situations this can be null.
                         if (location != null) {
                             mLastLocation = location;
+                            Log.i("mLastLocation", String.valueOf(mLastLocation.getLatitude()) + " " + String.valueOf(mLastLocation.getLongitude()));
                         }
                     }
                 });
-
     }
 
     @Override
@@ -154,12 +157,24 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
 
         mGoogleMap.setMyLocationEnabled(false);
         mGoogleMap.getUiSettings().setScrollGesturesEnabled(false);
+        mGoogleMap.getUiSettings().setZoomControlsEnabled(false);
+        mGoogleMap.getUiSettings().setZoomGesturesEnabled(false);
+        mGoogleMap.getUiSettings().setMapToolbarEnabled(false);
 
-        DeliveryGetter deliveryGetter = new DeliveryGetter(this);
+        final DeliveryGetter deliveryGetter = new DeliveryGetter(this);
         deliveryGetter.call(new onDeliveryListener() {
 
             @Override
-            public void onDelivery(List<Delivery> deliveryList) {
+            public void onDelivery(final List<Delivery> deliveryList) {
+
+                sorted = false;
+
+                btnViewAll.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        updateBounds(deliveryList);
+                    }
+                });
 
                 optimizeRecyclerView.setHasFixedSize(true);
                 optimizeRecyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
@@ -192,7 +207,6 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
                         mProgressDialog.dismiss();
                     }
                 });
-
             }
         });
 
@@ -204,6 +218,12 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
                 visibleRelativeLayoutHeight = visibleArrows.getHeight();
                 BottomSheetBehavior behavior = BottomSheetBehavior.from((View) bottomSheetMap);
                 behavior.setPeekHeight(visibleRelativeLayoutHeight);
+
+                ViewGroup.MarginLayoutParams marginLayoutParams =
+                        (ViewGroup.MarginLayoutParams) optimizeRecyclerView.getLayoutParams();
+                marginLayoutParams.setMargins(0, 10, 0, visibleRelativeLayoutHeight);
+
+                //optimizeRecyclerView.setLayoutParams(marginLayoutParams);
 
                 behavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
                     @Override
@@ -224,7 +244,7 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
         });
     }
 
-    private void updateBounds(List<Delivery> deliveryList) {
+    void updateBounds(List<Delivery> deliveryList) {
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
 
         for (int i = 0; i < deliveryList.size(); i++) {
@@ -232,12 +252,17 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
         }
 
         LatLngBounds bounds = builder.build();
-        mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100));
+        mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 200));
     }
 
     public void updatePolyline(List<Delivery> deliveryList) {
 
         mGoogleMap.clear();
+
+        if (sorted = false) {
+            Collections.sort(deliveryList, new sortLatLngArray(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude())));
+            sorted = true;
+        }
 
         for (int i = 0; i < deliveryList.size(); i++) {
             Marker marker = mGoogleMap.addMarker(new MarkerOptions().position(deliveryList.get(i).getMapLocation().getLatLng())
@@ -255,7 +280,6 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
         }
 
         //sort the list, give the Comparator the current location
-        Collections.sort(deliveryList, new sortLatLngArray(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude())));
 
         for (int i = 0; i < deliveryList.size() - 1; i++) {
 
@@ -280,17 +304,14 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
                         @Override
                         public void onDirectionSuccess(Direction direction, String rawBody) {
                             if (direction.isOK()) {
-                                ArrayList<LatLng> directionPositionList = direction.getRouteList().get(0).getLegList().get(0).getDirectionPoint();
-                                polyline = DirectionConverter.createPolyline(getApplicationContext(), directionPositionList, 10, Color.rgb(2 + (finalI * 30), 119 - (finalI * 10), 255 - (finalI * 20)));
+                                ArrayList<LatLng> directionPositionList = direction.getRouteList()
+                                        .get(0).getLegList().get(0).getDirectionPoint();
+                                polyline = DirectionConverter.createPolyline(getApplicationContext(),
+                                        directionPositionList, 10,
+                                        Color.rgb(2 + (finalI * 30), 119 + (finalI * 20), 255 - (finalI * 30)));
                                 mGoogleMap.addPolyline(polyline);
-
-                                Log.i("polyline_added:",
-                                        "from" + String.valueOf(startingPoint.latitude) +
-                                                " " + String.valueOf(startingPoint.longitude) +
-                                                "to" + String.valueOf(endPoint.latitude) +
-                                                " " + String.valueOf(endPoint.longitude));
                             } else {
-                                // Do something
+
                             }
                         }
 
@@ -300,4 +321,23 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
                     });
         }
     }
+
+    /*@OnClick(R.id.btn_proceed)
+    void startGoogleMapsNavigation(){
+        String srcAdd = "&origin=" + startingPoint.latitude + "," + startingPoint.longitude;
+        String desAdd = "&destination=" + endPoint.latitude + "," + endPoint.longitude;
+        String wayPoints = "";
+
+        for (int j = 0; j < deliveriesLatLng.size() - 1; j++) {
+            wayPoints = wayPoints + (wayPoints.equals("") ? "" : "%7C") + deliveriesLatLng.get(j).latitude + "," + deliveriesLatLng.get(j).longitude;
+        }
+        wayPoints = "&waypoints=" + wayPoints;
+
+        String link="https://www.google.com/maps/dir/?api=1&travelmode=driving"+srcAdd+desAdd+wayPoints;
+        final Intent intent = new Intent(android.content.Intent.ACTION_VIEW, Uri.parse(link));
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.setClassName("com.google.android.apps.maps", "com.google.android.maps.MapsActivity");
+        startActivity(intent);
+    }
+    */
 }

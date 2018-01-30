@@ -44,6 +44,7 @@ public class optimizeDeliveryAdapter extends RecyclerView.Adapter<OptimizeDelive
         holder.textViewContactPhoneNumber.setText(deliveryList.get(position).getContactPhoneNumber());
         holder.textViewNote.setText(deliveryList.get(position).getNote());
         holder.textViewPosition.setText(String.valueOf(position + 1));
+
         holder.imageReorder.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {

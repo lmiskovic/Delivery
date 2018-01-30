@@ -495,8 +495,6 @@ public class mapActivity extends AppCompatActivity
             AlertDialog dialog = builder.create();
             dialog.show();
             drawer.closeDrawer(GravityCompat.START);
-
-
         }
 
         @Override
