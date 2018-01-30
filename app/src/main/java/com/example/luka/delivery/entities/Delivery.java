@@ -6,6 +6,18 @@ import android.os.Parcelable;
 
 public class Delivery implements Parcelable {
 
+    @SuppressWarnings("unused")
+    public static final Parcelable.Creator<Delivery> CREATOR = new Parcelable.Creator<Delivery>() {
+        @Override
+        public Delivery createFromParcel(Parcel in) {
+            return new Delivery(in);
+        }
+
+        @Override
+        public Delivery[] newArray(int size) {
+            return new Delivery[size];
+        }
+    };
     private int id;
     private String created_at;
     private String updated_at;
@@ -33,6 +45,18 @@ public class Delivery implements Parcelable {
 
     public Delivery() {
 
+    }
+
+    protected Delivery(Parcel in) {
+        id = in.readInt();
+        created_at = in.readString();
+        updated_at = in.readString();
+        user_id = in.readInt();
+        deliveryAddress = in.readString();
+        customerName = in.readString();
+        contactPhoneNumber = in.readString();
+        note = in.readString();
+        mapLocation = (MapLocation) in.readValue(MapLocation.class.getClassLoader());
     }
 
     public String getCreated_at() {
@@ -108,19 +132,6 @@ public class Delivery implements Parcelable {
         this.mapLocation = mapLocation;
     }
 
-
-    protected Delivery(Parcel in) {
-        id = in.readInt();
-        created_at = in.readString();
-        updated_at = in.readString();
-        user_id = in.readInt();
-        deliveryAddress = in.readString();
-        customerName = in.readString();
-        contactPhoneNumber = in.readString();
-        note = in.readString();
-        mapLocation = (MapLocation) in.readValue(MapLocation.class.getClassLoader());
-    }
-
     @Override
     public int describeContents() {
         return 0;
@@ -138,17 +149,4 @@ public class Delivery implements Parcelable {
         dest.writeString(note);
         dest.writeValue(mapLocation);
     }
-
-    @SuppressWarnings("unused")
-    public static final Parcelable.Creator<Delivery> CREATOR = new Parcelable.Creator<Delivery>() {
-        @Override
-        public Delivery createFromParcel(Parcel in) {
-            return new Delivery(in);
-        }
-
-        @Override
-        public Delivery[] newArray(int size) {
-            return new Delivery[size];
-        }
-    };
 }

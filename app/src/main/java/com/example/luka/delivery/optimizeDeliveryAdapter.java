@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.luka.delivery.entities.Delivery;
+import com.example.luka.delivery.itemTouchHelper.OnReorderListener;
 import com.example.luka.delivery.itemTouchHelper.OnStartDragListener;
 import com.example.luka.delivery.itemTouchHelper.itemTouchHelperAdapter;
 
@@ -20,10 +21,12 @@ public class optimizeDeliveryAdapter extends RecyclerView.Adapter<OptimizeDelive
     private final OnStartDragListener mDragStartListener;
     Context context;
     private List<Delivery> deliveryList;
+    private OnReorderListener onReorderListener;
 
-    public optimizeDeliveryAdapter(Context context, List<Delivery> deliveryList, OnStartDragListener dragStartListener) {
+    public optimizeDeliveryAdapter(Context context, OnReorderListener onReorderListener, List<Delivery> deliveryList, OnStartDragListener dragStartListener) {
         this.deliveryList = deliveryList;
         this.context = context;
+        this.onReorderListener = onReorderListener;
         mDragStartListener = dragStartListener;
     }
 
@@ -61,14 +64,23 @@ public class optimizeDeliveryAdapter extends RecyclerView.Adapter<OptimizeDelive
     @Override
     public void onDrop() {
         notifyDataSetChanged();
+        onReorderListener.onListReordered(deliveryList);
     }
+
+    /*private void printList(List<Delivery> deliveryList) {
+        for(int i = 0 ; i < deliveryList.size() ; i++){
+            Log.i("printList", deliveryList.get(i).getDeliveryAddress());
+        }
+    }*/
 
     @Override
     public void onItemMove(int fromPosition, int toPosition) {
-        Delivery prev = deliveryList.remove(fromPosition);
-        deliveryList.add(toPosition > fromPosition ? toPosition - 1 : toPosition, prev);
+        if (fromPosition < toPosition) {
+            Collections.swap(deliveryList, fromPosition, fromPosition + 1);
+        } else {
+            Collections.swap(deliveryList, fromPosition, fromPosition - 1);
+        }
         notifyItemMoved(fromPosition, toPosition);
-        Collections.swap(deliveryList, fromPosition, toPosition);
     }
 
     @Override

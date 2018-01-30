@@ -19,6 +19,7 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -100,6 +101,7 @@ public class mapActivity extends AppCompatActivity
     @BindView(R.id.DrawerLayout)
     DrawerLayout drawer;
     SharedPreferences sharedPreferences;
+
     LocationCallback mLocationCallback = new LocationCallback() {
         @Override
         public void onLocationResult(LocationResult locationResult) {
@@ -439,7 +441,17 @@ public class mapActivity extends AppCompatActivity
             } else if (id == R.id.deliveries) {
                 startActivity(new Intent(mapActivity.this, deliveryActivity.class));
             } else if (id == R.id.route) {
-                startActivity(new Intent(mapActivity.this, optimizeActivity.class));
+                Intent intent = new Intent(mapActivity.this, optimizeActivity.class);
+                Bundle b = new Bundle();
+
+                b.putDouble("lat", mLastLocation.getLatitude());
+                b.putDouble("lng", mLastLocation.getLongitude());
+
+                intent.putExtras(b);
+
+                Log.i("currentlat", String.valueOf(mLastLocation.getLatitude()));
+                Log.i("currentlng", String.valueOf(mLastLocation.getLongitude()));
+                startActivity(intent);
             } else if (id == R.id.about) {
                 startActivity(new Intent(mapActivity.this, aboutActivity.class));
             }

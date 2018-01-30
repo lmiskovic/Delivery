@@ -3,6 +3,7 @@ package com.example.luka.delivery;
 import android.app.ProgressDialog;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetBehavior;
@@ -24,19 +25,25 @@ import com.akexorcist.googledirection.model.Direction;
 import com.akexorcist.googledirection.util.DirectionConverter;
 import com.example.luka.delivery.entities.Delivery;
 import com.example.luka.delivery.entities.onDeliveryListener;
+import com.example.luka.delivery.itemTouchHelper.OnReorderListener;
 import com.example.luka.delivery.itemTouchHelper.OnStartDragListener;
 import com.example.luka.delivery.itemTouchHelper.itemTouchCallback;
 import com.example.luka.delivery.network.DeliveryGetter;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.tasks.OnSuccessListener;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import butterknife.BindView;
@@ -52,18 +59,24 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
     LinearLayout bottomSheetMap;
     @BindView(R.id.visibleArrows)
     RelativeLayout visibleArrows;
+
     ProgressDialog mProgressDialog;
     SupportMapFragment mapFrag;
     ArrayList<LatLng> deliveriesLatLng;
+    Location mLastLocation;
     private ItemTouchHelper mItemTouchHelper;
     private GoogleMap mGoogleMap;
     private int visibleRelativeLayoutHeight;
     private LatLng startingPoint;
     private LatLng endPoint;
     private PolylineOptions polyline;
+    private FusedLocationProviderClient mFusedLocationClient;
+    private View myContentsView;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_optimize);
@@ -81,6 +94,46 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
         bottomSheetMap.setVisibility(View.VISIBLE);
 
         deliveriesLatLng = new ArrayList<>();
+
+        Bundle bundle = getIntent().getExtras();
+
+        double lat = bundle.getDouble("lat");
+        double lng = bundle.getDouble("lng");
+
+        mLastLocation = new Location("");
+
+        mLastLocation.setLatitude(lat);
+        mLastLocation.setLongitude(lng);
+
+        Log.i("currentlat", String.valueOf(mLastLocation.getLatitude()));
+        Log.i("currentlng", String.valueOf(mLastLocation.getLongitude()));
+
+        /*mLastLocation.setLatitude(lat);
+        mLastLocation.setLatitude(lng);*/
+
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        mFusedLocationClient.getLastLocation()
+                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        // Got last known location. In some rare situations this can be null.
+                        if (location != null) {
+                            mLastLocation = location;
+                        }
+                    }
+                });
+
     }
 
     @Override
@@ -104,14 +157,19 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
 
         DeliveryGetter deliveryGetter = new DeliveryGetter(this);
         deliveryGetter.call(new onDeliveryListener() {
+
             @Override
             public void onDelivery(List<Delivery> deliveryList) {
 
                 optimizeRecyclerView.setHasFixedSize(true);
                 optimizeRecyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
-
                 //creating recyclerview adapter
-                optimizeDeliveryAdapter adapter = new optimizeDeliveryAdapter(getApplicationContext(), deliveryList, new OnStartDragListener() {
+                optimizeDeliveryAdapter adapter = new optimizeDeliveryAdapter(getApplicationContext(), new OnReorderListener() {
+                    @Override
+                    public void onListReordered(List<Delivery> deliveryList) {
+                        updatePolyline(deliveryList);
+                    }
+                }, deliveryList, new OnStartDragListener() {
 
                     @Override
                     public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
@@ -177,11 +235,14 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
         mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100));
     }
 
-    private void updatePolyline(List<Delivery> deliveryList) {
+    public void updatePolyline(List<Delivery> deliveryList) {
+
+        mGoogleMap.clear();
 
         for (int i = 0; i < deliveryList.size(); i++) {
-            Log.i(TAG, deliveryList.get(i).getDeliveryAddress());
-            mGoogleMap.addMarker(new MarkerOptions().position(deliveryList.get(i).getMapLocation().getLatLng()));
+            Marker marker = mGoogleMap.addMarker(new MarkerOptions().position(deliveryList.get(i).getMapLocation().getLatLng())
+                    .title(String.valueOf(i + 1) + ". " + String.valueOf(deliveryList.get(i).getDeliveryAddress())));
+            marker.showInfoWindow();
         }
 
         updateBounds(deliveryList);
@@ -193,26 +254,41 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
             deliveriesLatLng.add(deliveryList.get(i).getMapLocation().getLatLng());
         }
 
+        //sort the list, give the Comparator the current location
+        Collections.sort(deliveryList, new sortLatLngArray(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude())));
+
         for (int i = 0; i < deliveryList.size() - 1; i++) {
 
-            Log.i("line_start:", deliveryList.get(i).getDeliveryAddress());
-            Log.i("line_end:", deliveryList.get(i + 1).getDeliveryAddress());
+            Log.i("line_start:", deliveryList.get(i).getDeliveryAddress() +
+                    " " + String.valueOf(deliveryList.get(i).getMapLocation().getLatLng().latitude) +
+                    " " + String.valueOf(deliveryList.get(i).getMapLocation().getLatLng().longitude));
+
+            Log.i("line_end:", deliveryList.get(i + 1).getDeliveryAddress() +
+                    " " + String.valueOf(deliveryList.get(i + 1).getMapLocation().getLatLng().latitude) +
+                    " " + String.valueOf(deliveryList.get(i + 1).getMapLocation().getLatLng().longitude));
 
             startingPoint = deliveryList.get(i).getMapLocation().getLatLng();
             endPoint = deliveryList.get(i + 1).getMapLocation().getLatLng();
 
+            final int finalI = i;
             GoogleDirection.withServerKey("AIzaSyAY5I_s7St4sbEqQsUO8ZRwCADK5Kb6pKc")
                     .from(startingPoint)
                     .to(endPoint)
+                    .optimizeWaypoints(true)
                     .transportMode(TransportMode.DRIVING)
                     .execute(new DirectionCallback() {
                         @Override
                         public void onDirectionSuccess(Direction direction, String rawBody) {
                             if (direction.isOK()) {
                                 ArrayList<LatLng> directionPositionList = direction.getRouteList().get(0).getLegList().get(0).getDirectionPoint();
-                                polyline = DirectionConverter.createPolyline(getApplicationContext(), directionPositionList, 10, Color.rgb(2, 119, 189));
+                                polyline = DirectionConverter.createPolyline(getApplicationContext(), directionPositionList, 10, Color.rgb(2 + (finalI * 30), 119 - (finalI * 10), 255 - (finalI * 20)));
                                 mGoogleMap.addPolyline(polyline);
 
+                                Log.i("polyline_added:",
+                                        "from" + String.valueOf(startingPoint.latitude) +
+                                                " " + String.valueOf(startingPoint.longitude) +
+                                                "to" + String.valueOf(endPoint.latitude) +
+                                                " " + String.valueOf(endPoint.longitude));
                             } else {
                                 // Do something
                             }
@@ -222,8 +298,6 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
                         public void onDirectionFailure(Throwable t) {
                         }
                     });
-
         }
-
     }
 }
