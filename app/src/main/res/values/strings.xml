@@ -17,7 +17,10 @@
     <string name="cancel">Cancel</string>
     <string name="logout">Logout</string>
     <string name="logout_message">Do you really want to logout?</string>
-    <string name="confirmandproceed">CONFIRM ROUTE\nand proceed to navigation</string>
+
+    <string name="confirmandproceed">NAVIGATE IN APP</string>
+    <string name="confirmandproceedtomaps">NAVIGATE IN MAPS</string>
+
     <string name="previewRoute">PREVIEW ROUTE</string>
     <string name="zoomToAll">SHOW ALL</string>
 

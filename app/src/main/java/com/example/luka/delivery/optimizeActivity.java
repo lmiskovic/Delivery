@@ -1,9 +1,11 @@
 package com.example.luka.delivery;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
@@ -51,6 +53,7 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 public class optimizeActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -258,10 +261,13 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
     public void updatePolyline(List<Delivery> deliveryList) {
 
         mGoogleMap.clear();
+        Log.i("SORTED VALUE", String.valueOf(sorted));
 
-        if (sorted = false) {
+        if (sorted == false) {
             Collections.sort(deliveryList, new sortLatLngArray(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude())));
             sorted = true;
+            Log.i("SORTING", "CALLED");
+
         }
 
         for (int i = 0; i < deliveryList.size(); i++) {
@@ -273,24 +279,17 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
         updateBounds(deliveryList);
 
         startingPoint = deliveryList.get(0).getMapLocation().getLatLng();
+        Log.i("startingPoint", deliveryList.get(0).getDeliveryAddress());
+
         endPoint = deliveryList.get(deliveryList.size() - 1).getMapLocation().getLatLng();
+        Log.i("endPoint", deliveryList.get(deliveryList.size() - 1).getDeliveryAddress());
 
         for (int i = 1; i < deliveryList.size() - 1; i++) {
             deliveriesLatLng.add(deliveryList.get(i).getMapLocation().getLatLng());
+            Log.i("waypointAdded", deliveryList.get(i).getDeliveryAddress());
         }
 
-        //sort the list, give the Comparator the current location
-
         for (int i = 0; i < deliveryList.size() - 1; i++) {
-
-            Log.i("line_start:", deliveryList.get(i).getDeliveryAddress() +
-                    " " + String.valueOf(deliveryList.get(i).getMapLocation().getLatLng().latitude) +
-                    " " + String.valueOf(deliveryList.get(i).getMapLocation().getLatLng().longitude));
-
-            Log.i("line_end:", deliveryList.get(i + 1).getDeliveryAddress() +
-                    " " + String.valueOf(deliveryList.get(i + 1).getMapLocation().getLatLng().latitude) +
-                    " " + String.valueOf(deliveryList.get(i + 1).getMapLocation().getLatLng().longitude));
-
             startingPoint = deliveryList.get(i).getMapLocation().getLatLng();
             endPoint = deliveryList.get(i + 1).getMapLocation().getLatLng();
 
@@ -322,16 +321,24 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
         }
     }
 
-    /*@OnClick(R.id.btn_proceed)
+    @OnClick(R.id.btn_proceed_to_maps)
     void startGoogleMapsNavigation(){
         String srcAdd = "&origin=" + startingPoint.latitude + "," + startingPoint.longitude;
         String desAdd = "&destination=" + endPoint.latitude + "," + endPoint.longitude;
         String wayPoints = "";
 
+        for (int j = 0; j < deliveriesLatLng.size(); j++) {
+            Log.i("deliveriesLatLng", String.valueOf(deliveriesLatLng.get(j).latitude + " " + String.valueOf(deliveriesLatLng.get(j).longitude)));
+        }
+
         for (int j = 0; j < deliveriesLatLng.size() - 1; j++) {
-            wayPoints = wayPoints + (wayPoints.equals("") ? "" : "%7C") + deliveriesLatLng.get(j).latitude + "," + deliveriesLatLng.get(j).longitude;
+            Log.i("size", String.valueOf(deliveriesLatLng.size()));
+            wayPoints = wayPoints + (wayPoints.equals("") ? "" : "%7C") + String.valueOf(deliveriesLatLng.get(j).latitude) + "," + String.valueOf(deliveriesLatLng.get(j).longitude);
         }
         wayPoints = "&waypoints=" + wayPoints;
+
+        Log.i("srcanddes ", srcAdd + " " + desAdd + " ");
+        Log.i("waypoints ", wayPoints);
 
         String link="https://www.google.com/maps/dir/?api=1&travelmode=driving"+srcAdd+desAdd+wayPoints;
         final Intent intent = new Intent(android.content.Intent.ACTION_VIEW, Uri.parse(link));
@@ -339,5 +346,5 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
         intent.setClassName("com.google.android.apps.maps", "com.google.android.maps.MapsActivity");
         startActivity(intent);
     }
-    */
+
 }
