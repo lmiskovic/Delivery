@@ -72,18 +72,6 @@ public class mapActivity extends AppCompatActivity
 
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
     private static final String TAG = "mapActivity";
-    GoogleMap mGoogleMap;
-    SupportMapFragment mapFrag;
-    LocationRequest mLocationRequest;
-    GoogleApiClient mGoogleApiClient;
-    Location mLastLocation;
-    FusedLocationProviderClient mFusedLocationClient;
-    Delivery currentDelivery;
-    PolylineOptions polyline;
-    ProgressDialog mProgressDialog;
-    TokenManager tokenManager;
-    ApiService service;
-    Call<AccessToken> call;
     @BindView(R.id.sheetTextDeliveryAdress)
     TextView sheetTextViewDeliveryAddress;
     @BindView(R.id.sheetTextCustomerName)
@@ -100,8 +88,20 @@ public class mapActivity extends AppCompatActivity
     RelativeLayout visibleRelativeLayout;
     @BindView(R.id.DrawerLayout)
     DrawerLayout drawer;
+    GoogleMap mGoogleMap;
+    SupportMapFragment mapFrag;
+    LocationRequest mLocationRequest;
+    GoogleApiClient mGoogleApiClient;
+    Location mLastLocation;
+    FusedLocationProviderClient mFusedLocationClient;
+    Delivery currentDelivery;
+    PolylineOptions polyline;
+    ProgressDialog mProgressDialog;
+    TokenManager tokenManager;
+    ApiService service;
+    Call<AccessToken> call;
     SharedPreferences sharedPreferences;
-
+    List<PolylineOptions> polylineArray;
     LocationCallback mLocationCallback = new LocationCallback() {
         @Override
         public void onLocationResult(LocationResult locationResult) {
@@ -115,6 +115,7 @@ public class mapActivity extends AppCompatActivity
             }
         }
     };
+    private boolean sorted;
     private int visibleRelativeLayoutHeight;
     private int sheetHeight;
     private boolean bottomSheetCollapsed;
@@ -147,6 +148,7 @@ public class mapActivity extends AppCompatActivity
 
         currentDelivery = getIntent().getParcelableExtra("Delivery");
 
+        polylineArray = getIntent().getParcelableArrayListExtra("polylineArray");
         //View hView = navigationView.getHeaderView(0);
 
         //TextView nav_user = hView.findViewById(R.id.nav_username);
@@ -234,6 +236,17 @@ public class mapActivity extends AppCompatActivity
                 });
 
             }
+
+            if (polylineArray != null) {
+
+                sorted = true;
+
+                for (int i = 0; i < polylineArray.size(); i++) {
+                    mGoogleMap.addPolyline(polylineArray.get(i));
+                }
+
+            }
+
             googleMap.getUiSettings().setMyLocationButtonEnabled(true);
 
             //Initialize Google Play Services
@@ -259,20 +272,12 @@ public class mapActivity extends AppCompatActivity
             for (Delivery delivery : deliveries) {
                 mGoogleMap.addMarker(new MarkerOptions().position(delivery.getMapLocation().getLatLng()));
             }
-
-        }
-
-        public LatLng toLatLng (Location location){
-
-            LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-
-            return latLng;
         }
 
         private void drawSelectedPolyline () {
 
             GoogleDirection.withServerKey("AIzaSyAY5I_s7St4sbEqQsUO8ZRwCADK5Kb6pKc")
-                    .from(toLatLng(mLastLocation))
+                    .from(Utils.toLatLng(mLastLocation))
                     .to(currentDelivery.getMapLocation().getLatLng())
                     .execute(new DirectionCallback() {
                         @Override
@@ -347,7 +352,7 @@ public class mapActivity extends AppCompatActivity
 
         public void updateMapBoundsCurrent (Location mLastLocation, LatLng currentDeliveryLatLng){
             LatLngBounds.Builder builder = new LatLngBounds.Builder();
-            builder.include(toLatLng(mLastLocation));
+            builder.include(Utils.toLatLng(mLastLocation));
             builder.include(currentDeliveryLatLng);
             LatLngBounds bounds = builder.build();
             mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 400));
@@ -369,9 +374,7 @@ public class mapActivity extends AppCompatActivity
                 if (ActivityCompat.shouldShowRequestPermissionRationale(this,
                         android.Manifest.permission.ACCESS_FINE_LOCATION)) {
 
-                    // Show an explanation to the user *asynchronously* -- don't block
-                    // this thread waiting for the user's response! After the user
-                    // sees the explanation, try again to request the permission.
+                    // Show an explanation to the user asynchronously
                     new AlertDialog.Builder(this)
                             .setTitle("Location Permission Needed")
                             .setMessage("This app needs the Location permission, please accept to use location functionality")
@@ -386,8 +389,6 @@ public class mapActivity extends AppCompatActivity
                             })
                             .create()
                             .show();
-
-
                 } else {
                     // No explanation needed, we can request the permission.
                     ActivityCompat.requestPermissions(this,
@@ -405,30 +406,21 @@ public class mapActivity extends AppCompatActivity
                     // If request is cancelled, the result arrays are empty.
                     if (grantResults.length > 0
                             && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                        // permission was granted, yay! Do the
-                        // location-related task you need to do.
+                        // permission granted
                         if (ContextCompat.checkSelfPermission(this,
                                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                                 == PackageManager.PERMISSION_GRANTED) {
-
                             if (mGoogleApiClient == null) {
                                 buildGoogleApiClient();
                             }
                             mGoogleMap.setMyLocationEnabled(true);
                         }
-
                     } else {
-
-                        // permission denied, boo! Disable the
-                        // functionality that depends on this permission.
+                        // permission denied
                         Toast.makeText(this, "permission denied", Toast.LENGTH_LONG).show();
                     }
                     return;
                 }
-
-                // other 'case' lines to check for other
-                // permissions this app might request
             }
         }
 

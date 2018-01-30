@@ -1,10 +1,10 @@
 package com.example.luka.delivery;
 
-import android.app.ProgressDialog;
-import android.content.Context;
+import android.location.Location;
 
 import com.example.luka.delivery.entities.ApiError;
 import com.example.luka.delivery.network.RetrofitBuilder;
+import com.google.android.gms.maps.model.LatLng;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -26,4 +26,12 @@ public class Utils {
         }
         return apiError;
     }
+
+    public static LatLng toLatLng(Location location) {
+
+        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+
+        return latLng;
+    }
+
 }

@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.BottomSheetBehavior;
@@ -74,6 +75,7 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
     SupportMapFragment mapFrag;
     ArrayList<LatLng> deliveriesLatLng;
     Location mLastLocation;
+    List<PolylineOptions> polylineArray;
     private ItemTouchHelper mItemTouchHelper;
     private GoogleMap mGoogleMap;
     private int visibleRelativeLayoutHeight;
@@ -82,7 +84,6 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
     private PolylineOptions polyline;
     private FusedLocationProviderClient mFusedLocationClient;
     private boolean sorted;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -259,8 +260,10 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
     }
 
     public void updatePolyline(List<Delivery> deliveryList) {
-
+        polylineArray = new ArrayList<>();
+        deliveriesLatLng.clear();
         mGoogleMap.clear();
+
         Log.i("SORTED VALUE", String.valueOf(sorted));
 
         if (sorted == false) {
@@ -289,14 +292,18 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
             Log.i("waypointAdded", deliveryList.get(i).getDeliveryAddress());
         }
 
+        if (polylineArray != null) {
+            polylineArray.clear();
+        }
+
         for (int i = 0; i < deliveryList.size() - 1; i++) {
-            startingPoint = deliveryList.get(i).getMapLocation().getLatLng();
-            endPoint = deliveryList.get(i + 1).getMapLocation().getLatLng();
+            LatLng startOfPolyline = deliveryList.get(i).getMapLocation().getLatLng();
+            LatLng endOfPolyline = deliveryList.get(i + 1).getMapLocation().getLatLng();
 
             final int finalI = i;
             GoogleDirection.withServerKey("AIzaSyAY5I_s7St4sbEqQsUO8ZRwCADK5Kb6pKc")
-                    .from(startingPoint)
-                    .to(endPoint)
+                    .from(startOfPolyline)
+                    .to(endOfPolyline)
                     .optimizeWaypoints(true)
                     .transportMode(TransportMode.DRIVING)
                     .execute(new DirectionCallback() {
@@ -309,6 +316,9 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
                                         directionPositionList, 10,
                                         Color.rgb(2 + (finalI * 30), 119 + (finalI * 20), 255 - (finalI * 30)));
                                 mGoogleMap.addPolyline(polyline);
+                                polylineArray.add(polyline);
+                                Log.i("polyline", "added");
+
                             } else {
 
                             }
@@ -327,13 +337,13 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
         String desAdd = "&destination=" + endPoint.latitude + "," + endPoint.longitude;
         String wayPoints = "";
 
-        for (int j = 0; j < deliveriesLatLng.size(); j++) {
-            Log.i("deliveriesLatLng", String.valueOf(deliveriesLatLng.get(j).latitude + " " + String.valueOf(deliveriesLatLng.get(j).longitude)));
+        for (int i = 0; i < deliveriesLatLng.size(); i++) {
+            Log.i("deliveriesLatLng", String.valueOf(deliveriesLatLng.get(i).latitude + " " + String.valueOf(deliveriesLatLng.get(i).longitude)));
         }
 
-        for (int j = 0; j < deliveriesLatLng.size() - 1; j++) {
+        for (int i = 0; i < deliveriesLatLng.size(); i++) {
             Log.i("size", String.valueOf(deliveriesLatLng.size()));
-            wayPoints = wayPoints + (wayPoints.equals("") ? "" : "%7C") + String.valueOf(deliveriesLatLng.get(j).latitude) + "," + String.valueOf(deliveriesLatLng.get(j).longitude);
+            wayPoints = wayPoints + (wayPoints.equals("") ? "" : "%7C") + String.valueOf(deliveriesLatLng.get(i).latitude) + "," + String.valueOf(deliveriesLatLng.get(i).longitude);
         }
         wayPoints = "&waypoints=" + wayPoints;
 
@@ -347,4 +357,16 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
         startActivity(intent);
     }
 
+    @OnClick(R.id.btn_proceed)
+    void startNavigationInApp() {
+        Intent intent;
+        intent = new Intent(optimizeActivity.this, mapActivity.class);
+        intent.putParcelableArrayListExtra("polylineArray", (ArrayList<? extends Parcelable>) polylineArray);
+        startActivity(intent);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+    }
 }
