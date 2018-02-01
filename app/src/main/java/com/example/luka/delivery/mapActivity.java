@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetBehavior;
@@ -33,6 +34,7 @@ import com.akexorcist.googledirection.GoogleDirection;
 import com.akexorcist.googledirection.model.Direction;
 import com.akexorcist.googledirection.util.DirectionConverter;
 import com.example.luka.delivery.entities.AccessToken;
+import com.example.luka.delivery.entities.ApiError;
 import com.example.luka.delivery.entities.Delivery;
 import com.example.luka.delivery.entities.onDeliveryListener;
 import com.example.luka.delivery.network.ApiService;
@@ -294,25 +296,51 @@ public class mapActivity extends AppCompatActivity
 
         call.enqueue(new Callback<AccessToken>() {
             @Override
-            public void onResponse(Call<AccessToken> call, Response<AccessToken> response) {
-                Log.i(TAG, String.valueOf(response.body()));
+            public void onResponse(Call<AccessToken> call, final Response<AccessToken> response) {
+                Log.i(TAG, "onResponse " + String.valueOf(response.code()));
+
+                if (response.code() == 204) {
+                    Log.i(TAG, "error " + String.valueOf(response.code()));
+
+                    Handler mainHandler = new Handler(Looper.getMainLooper());
+
+                    Runnable runnable = new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(mapActivity.this, "Status change: failed", Toast.LENGTH_LONG).show();
+                        }
+                    };
+                    mainHandler.post(runnable);
+
+                } else if (response.isSuccessful()) {
+                    deliveryList.remove(0);
+                    currentDelivery = deliveryList.get(0);
+
+                    // Get a handler that can be used to post to the main thread
+                    Handler mainHandler = new Handler(Looper.getMainLooper());
+
+                    Runnable runnable = new Runnable() {
+                        @Override
+                        public void run() {
+                            updatePolylines(polylineArray);
+                            populateBottomSheet(currentDelivery);
+                        }
+                    };
+                    mainHandler.post(runnable);
+
+                    polylineArray.remove(0);
+
+                } else {
+                    ApiError apiError = Utils.converErrors((response.errorBody()));
+                    Toast.makeText(mapActivity.this, apiError.getMessage(), Toast.LENGTH_LONG).show();
+                }
             }
 
             @Override
             public void onFailure(Call<AccessToken> call, Throwable t) {
-
+                Log.i(TAG, "onFailure " + "onFailure");
             }
         });
-
-        deliveryList.remove(0);
-        currentDelivery = deliveryList.get(0);
-        Log.i(TAG, "new size: " + deliveryList.size());
-        Log.i(TAG, "new first element: " + deliveryList.get(0).getDeliveryAddress());
-        populateBottomSheet(currentDelivery);
-        polylineArray.remove(0);
-        updatePolylines(polylineArray);
-        Log.i(TAG, "polyline size: " + polylineArray.size());
-        //contact api and mark delivery as done
 
     }
 

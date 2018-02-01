@@ -11,26 +11,26 @@ import retrofit2.http.POST;
 
 public interface ApiService {
 
-        @POST("register")
-        @FormUrlEncoded
-        Call<AccessToken> register(@Field("name") String name,
-                                   @Field("email") String email,
-                                   @Field("password") String password);
+    @POST("register")
+    @FormUrlEncoded
+    Call<AccessToken> register(@Field("name") String name,
+                               @Field("email") String email,
+                               @Field("password") String password);
 
-        @POST("login")
-        @FormUrlEncoded
-        Call<AccessToken> login(@Field("username") String username,
-                                @Field("password") String password);
+    @POST("login")
+    @FormUrlEncoded
+    Call<AccessToken> login(@Field("username") String username,
+                            @Field("password") String password);
 
-        @POST("refresh")
-        @FormUrlEncoded
-        Call<AccessToken> refresh(@Field("refresh_token") String refreshToken);
+    @POST("refresh")
+    @FormUrlEncoded
+    Call<AccessToken> refresh(@Field("refresh_token") String refreshToken);
 
-        @GET("deliveries")
-        Call<DeliveryResponse> deliveries();
+    @GET("deliveries")
+    Call<DeliveryResponse> deliveries();
 
     @POST("setDelivered")
-        @FormUrlEncoded
+    @FormUrlEncoded
     Call<AccessToken> setDelivered(@Field("id") int id);
 
     @POST("logout")
