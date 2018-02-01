@@ -76,6 +76,7 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
     ArrayList<LatLng> deliveriesLatLng;
     Location mLastLocation;
     List<PolylineOptions> polylineArray;
+    List<Delivery> mDeliveryList;
     private ItemTouchHelper mItemTouchHelper;
     private GoogleMap mGoogleMap;
     private int visibleRelativeLayoutHeight;
@@ -84,6 +85,7 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
     private PolylineOptions polyline;
     private FusedLocationProviderClient mFusedLocationClient;
     private boolean sorted;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -115,10 +117,9 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
         mLastLocation.setLatitude(lat);
         mLastLocation.setLongitude(lng);
 
-        /*mLastLocation.setLatitude(lat);
-        mLastLocation.setLatitude(lng);*/
-
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+        mDeliveryList = new ArrayList<>();
 
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -148,6 +149,7 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
         mGoogleMap = googleMap;
         mGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 
+
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -170,6 +172,8 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
 
             @Override
             public void onDelivery(final List<Delivery> deliveryList) {
+
+                saveDeliveryList(deliveryList);
 
                 sorted = false;
 
@@ -246,6 +250,10 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
                 });
             }
         });
+    }
+
+    private void saveDeliveryList(List<Delivery> deliveryList) {
+        mDeliveryList = deliveryList;
     }
 
     void updateBounds(List<Delivery> deliveryList) {
@@ -362,6 +370,7 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
         Intent intent;
         intent = new Intent(optimizeActivity.this, mapActivity.class);
         intent.putParcelableArrayListExtra("polylineArray", (ArrayList<? extends Parcelable>) polylineArray);
+        intent.putParcelableArrayListExtra("orderedDeliveryList", (ArrayList<? extends Parcelable>) mDeliveryList);
         startActivity(intent);
     }
 

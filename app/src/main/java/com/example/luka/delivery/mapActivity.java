@@ -72,6 +72,7 @@ public class mapActivity extends AppCompatActivity
 
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
     private static final String TAG = "mapActivity";
+
     @BindView(R.id.sheetTextDeliveryAdress)
     TextView sheetTextViewDeliveryAddress;
     @BindView(R.id.sheetTextCustomerName)
@@ -94,7 +95,6 @@ public class mapActivity extends AppCompatActivity
     GoogleApiClient mGoogleApiClient;
     Location mLastLocation;
     FusedLocationProviderClient mFusedLocationClient;
-    Delivery currentDelivery;
     PolylineOptions polyline;
     ProgressDialog mProgressDialog;
     TokenManager tokenManager;
@@ -102,23 +102,26 @@ public class mapActivity extends AppCompatActivity
     Call<AccessToken> call;
     SharedPreferences sharedPreferences;
     List<PolylineOptions> polylineArray;
+    private Delivery currentDelivery;
+    private boolean sorted;
+    private int visibleRelativeLayoutHeight;
+    private int sheetHeight;
+    private boolean bottomSheetCollapsed;
+    private List<Delivery> deliveryList;
+
     LocationCallback mLocationCallback = new LocationCallback() {
         @Override
         public void onLocationResult(LocationResult locationResult) {
             for (Location location : locationResult.getLocations()) {
                 mLastLocation = location;
 
-                if (currentDelivery != null) {
+                if (currentDelivery != null && deliveryList == null) {
                     updateMapBoundsCurrent(mLastLocation, currentDelivery.getMapLocation().getLatLng());
                     drawSelectedPolyline();
                 }
             }
         }
     };
-    private boolean sorted;
-    private int visibleRelativeLayoutHeight;
-    private int sheetHeight;
-    private boolean bottomSheetCollapsed;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -149,6 +152,7 @@ public class mapActivity extends AppCompatActivity
         currentDelivery = getIntent().getParcelableExtra("Delivery");
 
         polylineArray = getIntent().getParcelableArrayListExtra("polylineArray");
+        deliveryList = getIntent().getParcelableArrayListExtra("orderedDeliveryList");
         //View hView = navigationView.getHeaderView(0);
 
         //TextView nav_user = hView.findViewById(R.id.nav_username);
@@ -156,361 +160,426 @@ public class mapActivity extends AppCompatActivity
         //nav_user.setText(email);
 
         if (currentDelivery != null) {
+            populateBottomSheet(currentDelivery);
+        }
+    }
 
-            sheetTextViewDeliveryAddress.setText(currentDelivery.getDeliveryAddress());
-            sheetTextViewCustomerName.setText(currentDelivery.getCustomerName());
-            sheetTextViewContactPhoneNumber.setText(currentDelivery.getContactPhoneNumber());
-            sheetTextViewNote.setText(currentDelivery.getNote());
+    private void populateBottomSheet(Delivery currentDelivery) {
+        sheetTextViewDeliveryAddress.setText(currentDelivery.getDeliveryAddress());
+        sheetTextViewCustomerName.setText(currentDelivery.getCustomerName());
+        sheetTextViewContactPhoneNumber.setText(currentDelivery.getContactPhoneNumber());
+        sheetTextViewNote.setText(currentDelivery.getNote());
 
-            ViewTreeObserver vto = bottomSheet.getViewTreeObserver();
-            bottomSheet.setVisibility(View.VISIBLE);
+        ViewTreeObserver vto = bottomSheet.getViewTreeObserver();
+        bottomSheet.setVisibility(View.VISIBLE);
 
-            vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-                @Override
-                public void onGlobalLayout() {
-                    visibleRelativeLayoutHeight = visibleRelativeLayout.getHeight();
-                    sheetHeight = bottomSheet.getHeight();
-                    BottomSheetBehavior behavior = BottomSheetBehavior.from((View) bottomSheet);
-                    behavior.setPeekHeight(visibleRelativeLayoutHeight);
+        vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                visibleRelativeLayoutHeight = visibleRelativeLayout.getHeight();
+                sheetHeight = bottomSheet.getHeight();
+                BottomSheetBehavior behavior = BottomSheetBehavior.from((View) bottomSheet);
+                behavior.setPeekHeight(visibleRelativeLayoutHeight);
 
-                    if(bottomSheetCollapsed)
-                        mGoogleMap.setPadding(0, 0, 0, visibleRelativeLayoutHeight);
+                if (bottomSheetCollapsed)
+                    mGoogleMap.setPadding(0, 0, 0, visibleRelativeLayoutHeight);
 
-                    behavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
-                        @Override
-                        public void onStateChanged(@NonNull View bottomSheet, int newState) {
-                            if (newState == BottomSheetBehavior.STATE_EXPANDED) {
-                                bottomSheetCollapsed = false;
-                                mGoogleMap.setPadding(0, 0, 0, sheetHeight);
-                            } else if (newState == BottomSheetBehavior.STATE_COLLAPSED) {
-                                bottomSheetCollapsed = true;
-                                mGoogleMap.setPadding(0, 0, 0, visibleRelativeLayoutHeight);
-                            }
+                behavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+                    @Override
+                    public void onStateChanged(@NonNull View bottomSheet, int newState) {
+                        if (newState == BottomSheetBehavior.STATE_EXPANDED) {
+                            bottomSheetCollapsed = false;
+                            mGoogleMap.setPadding(0, 0, 0, sheetHeight);
+                        } else if (newState == BottomSheetBehavior.STATE_COLLAPSED) {
+                            bottomSheetCollapsed = true;
+                            mGoogleMap.setPadding(0, 0, 0, visibleRelativeLayoutHeight);
                         }
+                    }
 
-                        @Override
-                        public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+                    @Override
+                    public void onSlide(@NonNull View bottomSheet, float slideOffset) {
 
-                        }
-                    });
-                }
-            });
+                    }
+                });
+            }
+        });
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        //stop location updates when Activity is no longer active
+        if (mFusedLocationClient != null) {
+            mFusedLocationClient.removeLocationUpdates(mLocationCallback);
         }
     }
 
     @Override
-        public void onPause () {
-            super.onPause();
-            //stop location updates when Activity is no longer active
-            if (mFusedLocationClient != null) {
-                mFusedLocationClient.removeLocationUpdates(mLocationCallback);
-            }
+    public void onMapReady(GoogleMap googleMap) {
+        mGoogleMap = googleMap;
+        mGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 
-
+        if (bottomSheetCollapsed) {
+            mGoogleMap.setPadding(0, 0, 0, visibleRelativeLayoutHeight);
         }
 
-        @Override
-        public void onMapReady (GoogleMap googleMap){
-            mGoogleMap = googleMap;
-            mGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        if (currentDelivery == null) {
 
-            if (bottomSheetCollapsed) {
-                mGoogleMap.setPadding(0, 0, 0, visibleRelativeLayoutHeight);
-            }
+            mProgressDialog.setIndeterminate(true);
+            mProgressDialog.setCancelable(false);
+            mProgressDialog.setMessage("Loading deliveries...");
+            mProgressDialog.show();
 
-            if (currentDelivery == null) {
-
-                mProgressDialog.setIndeterminate(true);
-                mProgressDialog.setCancelable(false);
-                mProgressDialog.setMessage("Loading deliveries...");
-                mProgressDialog.show();
-
-                DeliveryGetter deliveryGetter = new DeliveryGetter(this);
-                deliveryGetter.call(new onDeliveryListener() {
-                    @Override
-                    public void onDelivery(List<Delivery> deliveryList) {
-                        addMarkers(deliveryList);
-                        updateBoundsAll(deliveryList);
-                        mProgressDialog.dismiss();
-                    }
-                });
-
-            }
-
-            if (polylineArray != null) {
-
-                sorted = true;
-
-                for (int i = 0; i < polylineArray.size(); i++) {
-                    mGoogleMap.addPolyline(polylineArray.get(i));
+            DeliveryGetter deliveryGetter = new DeliveryGetter(this);
+            deliveryGetter.call(new onDeliveryListener() {
+                @Override
+                public void onDelivery(List<Delivery> deliveryList) {
+                    addMarkers(deliveryList);
+                    updateBoundsAll(deliveryList);
+                    mProgressDialog.dismiss();
                 }
+            });
 
-            }
-
-            googleMap.getUiSettings().setMyLocationButtonEnabled(true);
-
-            //Initialize Google Play Services
-            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (ContextCompat.checkSelfPermission(this,
-                        android.Manifest.permission.ACCESS_FINE_LOCATION)
-                        == PackageManager.PERMISSION_GRANTED) {
-                    //Location Permission already granted
-                    buildGoogleApiClient();
-                    mGoogleMap.setMyLocationEnabled(true);
-                } else {
-                    //Request Location Permission
-                    checkLocationPermission();
-                }
-            } else {
-                buildGoogleApiClient();
-                mGoogleMap.setMyLocationEnabled(true);
-            }
         }
 
-        private void addMarkers (List < Delivery > deliveries) {
+        if (polylineArray != null && deliveryList != null) {
 
-            for (Delivery delivery : deliveries) {
-                mGoogleMap.addMarker(new MarkerOptions().position(delivery.getMapLocation().getLatLng()));
-            }
-        }
+            sorted = true;
 
-        private void drawSelectedPolyline () {
-
-            GoogleDirection.withServerKey("AIzaSyAY5I_s7St4sbEqQsUO8ZRwCADK5Kb6pKc")
-                    .from(Utils.toLatLng(mLastLocation))
-                    .to(currentDelivery.getMapLocation().getLatLng())
-                    .execute(new DirectionCallback() {
-                        @Override
-                        public void onDirectionSuccess(Direction direction, String rawBody) {
-                            if (direction.isOK()) {
-                                mGoogleMap.clear();
-                                mGoogleMap.addMarker(new MarkerOptions().position(currentDelivery.getMapLocation().getLatLng()));
-                                ArrayList<LatLng> directionPositionList = direction.getRouteList().get(0).getLegList().get(0).getDirectionPoint();
-
-                                polyline = DirectionConverter.createPolyline(getApplicationContext(), directionPositionList, 10, Color.rgb(2, 119, 189));
-
-                                mGoogleMap.addPolyline(polyline);
-
-                            } else {
-                                // Do something
-                            }
-                        }
-
-                        @Override
-                        public void onDirectionFailure(Throwable t) {
-                        }
-                    });
-        }
-
-        protected synchronized void buildGoogleApiClient () {
-            mGoogleApiClient = new GoogleApiClient.Builder(this)
-                    .addConnectionCallbacks(this)
-                    .addOnConnectionFailedListener(this)
-                    .addApi(LocationServices.API)
-                    .build();
-            mGoogleApiClient.connect();
-        }
-
-        @Override
-        public void onConnected (Bundle bundle){
-
-            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                // TODO: Consider calling
-                //    ActivityCompat#requestPermissions
-                // here to request the missing permissions, and then overriding
-                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                //                                          int[] grantResults)
-                // to handle the case where the user grants the permission. See the documentation
-                // for ActivityCompat#requestPermissions for more details.
-                return;
+            for (int i = 0; i < polylineArray.size(); i++) {
+                mGoogleMap.addPolyline(polylineArray.get(i));
             }
 
+            //create bottomsheet with next delivery and options
 
-            mLocationRequest = new LocationRequest();
-            mLocationRequest.setInterval(5000);
-            mLocationRequest.setFastestInterval(10000);
-            mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+            currentDelivery = deliveryList.get(0);
+            populateBottomSheet(deliveryList.get(0));
+        }
+
+        googleMap.getUiSettings().setMyLocationButtonEnabled(true);
+
+        //Initialize Google Play Services
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ContextCompat.checkSelfPermission(this,
                     android.Manifest.permission.ACCESS_FINE_LOCATION)
                     == PackageManager.PERMISSION_GRANTED) {
-                mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback, Looper.myLooper());
+                //Location Permission already granted
+                buildGoogleApiClient();
+                mGoogleMap.setMyLocationEnabled(true);
+            } else {
+                //Request Location Permission
+                checkLocationPermission();
             }
-
-
-        }
-
-        public void updateBoundsAll (List < Delivery > deliveryList) {
-            LatLngBounds.Builder builder = new LatLngBounds.Builder();
-
-            for (int i = 0; i < deliveryList.size(); i++) {
-                builder.include(deliveryList.get(i).getMapLocation().getLatLng());
-            }
-
-            LatLngBounds bounds = builder.build();
-            mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 400));
-        }
-
-        public void updateMapBoundsCurrent (Location mLastLocation, LatLng currentDeliveryLatLng){
-            LatLngBounds.Builder builder = new LatLngBounds.Builder();
-            builder.include(Utils.toLatLng(mLastLocation));
-            builder.include(currentDeliveryLatLng);
-            LatLngBounds bounds = builder.build();
-            mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 400));
-        }
-
-        @Override
-        public void onConnectionSuspended ( int i){
-        }
-
-        @Override
-        public void onConnectionFailed (ConnectionResult connectionResult){
-        }
-
-        private void checkLocationPermission () {
-            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
-                    != PackageManager.PERMISSION_GRANTED) {
-
-                // Should we show an explanation?
-                if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                        android.Manifest.permission.ACCESS_FINE_LOCATION)) {
-
-                    // Show an explanation to the user asynchronously
-                    new AlertDialog.Builder(this)
-                            .setTitle("Location Permission Needed")
-                            .setMessage("This app needs the Location permission, please accept to use location functionality")
-                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialogInterface, int i) {
-                                    //Prompt the user once explanation has been shown
-                                    ActivityCompat.requestPermissions(mapActivity.this,
-                                            new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                                            MY_PERMISSIONS_REQUEST_LOCATION);
-                                }
-                            })
-                            .create()
-                            .show();
-                } else {
-                    // No explanation needed, we can request the permission.
-                    ActivityCompat.requestPermissions(this,
-                            new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                            MY_PERMISSIONS_REQUEST_LOCATION);
-                }
-            }
-        }
-
-        @Override
-        public void onRequestPermissionsResult ( int requestCode,
-        String permissions[], int[] grantResults){
-            switch (requestCode) {
-                case MY_PERMISSIONS_REQUEST_LOCATION: {
-                    // If request is cancelled, the result arrays are empty.
-                    if (grantResults.length > 0
-                            && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                        // permission granted
-                        if (ContextCompat.checkSelfPermission(this,
-                                android.Manifest.permission.ACCESS_FINE_LOCATION)
-                                == PackageManager.PERMISSION_GRANTED) {
-                            if (mGoogleApiClient == null) {
-                                buildGoogleApiClient();
-                            }
-                            mGoogleMap.setMyLocationEnabled(true);
-                        }
-                    } else {
-                        // permission denied
-                        Toast.makeText(this, "permission denied", Toast.LENGTH_LONG).show();
-                    }
-                    return;
-                }
-            }
-        }
-
-        @Override
-        public boolean onNavigationItemSelected (@NonNull MenuItem item){
-            int id = item.getItemId();
-
-            if (id == R.id.my_profile) {
-                // Handle the camera action
-            } else if (id == R.id.deliveries) {
-                startActivity(new Intent(mapActivity.this, deliveryActivity.class));
-            } else if (id == R.id.route) {
-                Intent intent = new Intent(mapActivity.this, optimizeActivity.class);
-                Bundle b = new Bundle();
-
-                b.putDouble("lat", mLastLocation.getLatitude());
-                b.putDouble("lng", mLastLocation.getLongitude());
-
-                intent.putExtras(b);
-
-                Log.i("currentlat", String.valueOf(mLastLocation.getLatitude()));
-                Log.i("currentlng", String.valueOf(mLastLocation.getLongitude()));
-                startActivity(intent);
-            } else if (id == R.id.about) {
-                startActivity(new Intent(mapActivity.this, aboutActivity.class));
-            }
-
-            drawer.closeDrawer(GravityCompat.START);
-            return true;
-        }
-
-        @OnClick(R.id.btn_logout)
-        void logout () {
-
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setMessage(R.string.logout_message)
-                    .setTitle(R.string.logout);
-
-            builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int id) {
-                    tokenManager = TokenManager.getInstance(getSharedPreferences("prefs", MODE_PRIVATE));
-                    call = service.logout(tokenManager.getToken());
-                    call.enqueue(new Callback<AccessToken>() {
-                        @Override
-                        public void onResponse(Call<AccessToken> call, Response<AccessToken> response) {
-                            getSharedPreferences("prefs", MODE_PRIVATE).edit().clear().apply();
-                            startActivity(new Intent(mapActivity.this, loginActivity.class));
-                        }
-
-                        @Override
-                        public void onFailure(Call<AccessToken> call, Throwable t) {
-
-                        }
-                    });
-                }
-            });
-
-            builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int id) {
-                    // User cancelled the dialog
-                }
-            });
-
-            AlertDialog dialog = builder.create();
-            dialog.show();
-            drawer.closeDrawer(GravityCompat.START);
-        }
-
-        @Override
-        protected void onStop () {
-            super.onStop();
-        }
-
-        @Override
-        protected void onDestroy () {
-            super.onDestroy();
-        }
-
-        @Override
-        public void onSaveInstanceState (Bundle outState){
-            super.onSaveInstanceState(outState);
-        }
-
-        @Override
-        public void onRestoreInstanceState (Bundle savedInstanceState){
-
-        }
-
-        @Override
-        public void onBackPressed () {
-            finish();
+        } else {
+            buildGoogleApiClient();
+            mGoogleMap.setMyLocationEnabled(true);
         }
     }
+
+    private void replaceCurrentDelivery(Delivery delivery) {
+
+    }
+
+    @OnClick(R.id.buttonDelivered)
+    void setDelivered() {
+        Log.i(TAG, "clickedForDelivery " + currentDelivery.getDeliveryAddress());
+
+        tokenManager = TokenManager.getInstance(getSharedPreferences("prefs", MODE_PRIVATE));
+
+        service = RetrofitBuilder.createServiceWithAuth(ApiService.class, tokenManager);
+
+        call = service.setDelivered(currentDelivery.getId());
+
+        Log.i(TAG, String.valueOf(call.request()));
+
+        call.enqueue(new Callback<AccessToken>() {
+            @Override
+            public void onResponse(Call<AccessToken> call, Response<AccessToken> response) {
+                Log.i(TAG, String.valueOf(response.body()));
+            }
+
+            @Override
+            public void onFailure(Call<AccessToken> call, Throwable t) {
+
+            }
+        });
+
+        deliveryList.remove(0);
+        currentDelivery = deliveryList.get(0);
+        Log.i(TAG, "new size: " + deliveryList.size());
+        Log.i(TAG, "new first element: " + deliveryList.get(0).getDeliveryAddress());
+        populateBottomSheet(currentDelivery);
+        polylineArray.remove(0);
+        updatePolylines(polylineArray);
+        Log.i(TAG, "polyline size: " + polylineArray.size());
+        //contact api and mark delivery as done
+
+    }
+
+    private void updatePolylines(List<PolylineOptions> polylineArray) {
+        mGoogleMap.clear();
+        addMarkers(deliveryList);
+        for (int i = 0; i < polylineArray.size(); i++) {
+            mGoogleMap.addPolyline(polylineArray.get(i));
+        }
+    }
+
+    @OnClick(R.id.buttonDeclined)
+    void setDeclined() {
+        Log.i(TAG, "clickedForDelivery " + currentDelivery.getDeliveryAddress());
+        //contact api and mark delivery as declined
+    }
+
+    @OnClick(R.id.buttonNextDay)
+    void setForNextDay() {
+        Log.i(TAG, "clickedForDelivery " + currentDelivery.getDeliveryAddress());
+        //contact api and mark delivery as postponed
+    }
+
+    private void addMarkers(List<Delivery> deliveries) {
+
+        for (Delivery delivery : deliveries) {
+            mGoogleMap.addMarker(new MarkerOptions().position(delivery.getMapLocation().getLatLng()));
+        }
+    }
+
+    private void drawSelectedPolyline() {
+
+        GoogleDirection.withServerKey("AIzaSyAY5I_s7St4sbEqQsUO8ZRwCADK5Kb6pKc")
+                .from(Utils.toLatLng(mLastLocation))
+                .to(currentDelivery.getMapLocation().getLatLng())
+                .execute(new DirectionCallback() {
+                    @Override
+                    public void onDirectionSuccess(Direction direction, String rawBody) {
+                        if (direction.isOK()) {
+                            mGoogleMap.clear();
+                            mGoogleMap.addMarker(new MarkerOptions().position(currentDelivery.getMapLocation().getLatLng()));
+                            ArrayList<LatLng> directionPositionList = direction.getRouteList().get(0).getLegList().get(0).getDirectionPoint();
+
+                            polyline = DirectionConverter.createPolyline(getApplicationContext(), directionPositionList, 10, Color.rgb(2, 119, 189));
+
+                            mGoogleMap.addPolyline(polyline);
+
+                        } else {
+                            // Do something
+                        }
+                    }
+
+                    @Override
+                    public void onDirectionFailure(Throwable t) {
+                    }
+                });
+    }
+
+    protected synchronized void buildGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+
+
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(5000);
+        mLocationRequest.setFastestInterval(10000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        if (ContextCompat.checkSelfPermission(this,
+                android.Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback, Looper.myLooper());
+        }
+
+
+    }
+
+    public void updateBoundsAll(List<Delivery> deliveryList) {
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+
+        for (int i = 0; i < deliveryList.size(); i++) {
+            builder.include(deliveryList.get(i).getMapLocation().getLatLng());
+        }
+
+        LatLngBounds bounds = builder.build();
+        mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 400));
+    }
+
+    public void updateMapBoundsCurrent(Location mLastLocation, LatLng currentDeliveryLatLng) {
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        builder.include(Utils.toLatLng(mLastLocation));
+        builder.include(currentDeliveryLatLng);
+        LatLngBounds bounds = builder.build();
+        mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 400));
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+    }
+
+    private void checkLocationPermission() {
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    android.Manifest.permission.ACCESS_FINE_LOCATION)) {
+
+                // Show an explanation to the user asynchronously
+                new AlertDialog.Builder(this)
+                        .setTitle("Location Permission Needed")
+                        .setMessage("This app needs the Location permission, please accept to use location functionality")
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                //Prompt the user once explanation has been shown
+                                ActivityCompat.requestPermissions(mapActivity.this,
+                                        new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                                        MY_PERMISSIONS_REQUEST_LOCATION);
+                            }
+                        })
+                        .create()
+                        .show();
+            } else {
+                // No explanation needed, we can request the permission.
+                ActivityCompat.requestPermissions(this,
+                        new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                        MY_PERMISSIONS_REQUEST_LOCATION);
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_LOCATION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // permission granted
+                    if (ContextCompat.checkSelfPermission(this,
+                            android.Manifest.permission.ACCESS_FINE_LOCATION)
+                            == PackageManager.PERMISSION_GRANTED) {
+                        if (mGoogleApiClient == null) {
+                            buildGoogleApiClient();
+                        }
+                        mGoogleMap.setMyLocationEnabled(true);
+                    }
+                } else {
+                    // permission denied
+                    Toast.makeText(this, "permission denied", Toast.LENGTH_LONG).show();
+                }
+                return;
+            }
+        }
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.my_profile) {
+            // Handle the camera action
+        } else if (id == R.id.deliveries) {
+            startActivity(new Intent(mapActivity.this, deliveryActivity.class));
+        } else if (id == R.id.route) {
+            Intent intent = new Intent(mapActivity.this, optimizeActivity.class);
+            Bundle b = new Bundle();
+
+            b.putDouble("lat", mLastLocation.getLatitude());
+            b.putDouble("lng", mLastLocation.getLongitude());
+
+            intent.putExtras(b);
+
+            Log.i("currentlat", String.valueOf(mLastLocation.getLatitude()));
+            Log.i("currentlng", String.valueOf(mLastLocation.getLongitude()));
+            startActivity(intent);
+        } else if (id == R.id.about) {
+            startActivity(new Intent(mapActivity.this, aboutActivity.class));
+        }
+
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
+    }
+
+    @OnClick(R.id.btn_logout)
+    void logout() {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(R.string.logout_message)
+                .setTitle(R.string.logout);
+
+        builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                tokenManager = TokenManager.getInstance(getSharedPreferences("prefs", MODE_PRIVATE));
+                call = service.logout(tokenManager.getToken());
+                call.enqueue(new Callback<AccessToken>() {
+                    @Override
+                    public void onResponse(Call<AccessToken> call, Response<AccessToken> response) {
+                        getSharedPreferences("prefs", MODE_PRIVATE).edit().clear().apply();
+                        startActivity(new Intent(mapActivity.this, loginActivity.class));
+                    }
+
+                    @Override
+                    public void onFailure(Call<AccessToken> call, Throwable t) {
+
+                    }
+                });
+            }
+        });
+
+        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User cancelled the dialog
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+        drawer.closeDrawer(GravityCompat.START);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+
+    }
+
+    @Override
+    public void onBackPressed() {
+        finish();
+    }
+}
