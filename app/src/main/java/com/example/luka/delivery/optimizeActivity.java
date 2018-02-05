@@ -21,6 +21,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
@@ -70,7 +71,10 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
     ConstraintLayout optimizeActivityLayout;
     @BindView(R.id.btnViewAll)
     Button btnViewAll;
-
+    @BindView(R.id.arrow1)
+    ImageView arrow1;
+    @BindView(R.id.arrow2)
+    ImageView arrow2;
     ProgressDialog mProgressDialog;
     SupportMapFragment mapFrag;
     ArrayList<LatLng> deliveriesLatLng;
@@ -223,6 +227,10 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
         vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
+
+                arrow1.setBackgroundResource(R.drawable.ic_arrow_up);
+                arrow2.setBackgroundResource(R.drawable.ic_arrow_up);
+
                 visibleRelativeLayoutHeight = visibleArrows.getHeight();
                 BottomSheetBehavior behavior = BottomSheetBehavior.from((View) bottomSheetMap);
                 behavior.setPeekHeight(visibleRelativeLayoutHeight);
@@ -237,9 +245,11 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
                     @Override
                     public void onStateChanged(@NonNull View bottomSheetMap, int newState) {
                         if (newState == BottomSheetBehavior.STATE_EXPANDED) {
-
+                            arrow1.setBackgroundResource(R.drawable.ic_arrow_down);
+                            arrow2.setBackgroundResource(R.drawable.ic_arrow_down);
                         } else if (newState == BottomSheetBehavior.STATE_COLLAPSED) {
-
+                            arrow1.setBackgroundResource(R.drawable.ic_arrow_up);
+                            arrow2.setBackgroundResource(R.drawable.ic_arrow_up);
                         }
                     }
 
@@ -280,6 +290,7 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
             Log.i("SORTING", "CALLED");
 
         }
+
 
         for (int i = 0; i < deliveryList.size(); i++) {
             Marker marker = mGoogleMap.addMarker(new MarkerOptions().position(deliveryList.get(i).getMapLocation().getLatLng())

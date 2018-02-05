@@ -54,6 +54,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.ArrayList;
@@ -104,22 +105,29 @@ public class mapActivity extends AppCompatActivity
     Call<AccessToken> call;
     SharedPreferences sharedPreferences;
     List<PolylineOptions> polylineArray;
+    ArrayList<LatLng> directionPositionList;
     private Delivery currentDelivery;
     private boolean sorted;
     private int visibleRelativeLayoutHeight;
     private int sheetHeight;
     private boolean bottomSheetCollapsed;
     private List<Delivery> deliveryList;
+    private Polyline polylineFinal;
+    private boolean boundsUpdated;
+    private boolean markersAdded;
 
     LocationCallback mLocationCallback = new LocationCallback() {
         @Override
         public void onLocationResult(LocationResult locationResult) {
             for (Location location : locationResult.getLocations()) {
                 mLastLocation = location;
-
-                if (currentDelivery != null && deliveryList == null) {
-                    updateMapBoundsCurrent(mLastLocation, currentDelivery.getMapLocation().getLatLng());
-                    drawSelectedPolyline();
+                Log.i("mlastlocation", String.valueOf(mLastLocation.getLatitude()) + " " + String.valueOf(mLastLocation.getLongitude()));
+                if (currentDelivery != null || deliveryList != null) {
+                    if (!boundsUpdated) {
+                        updateMapBoundsCurrent(mLastLocation, currentDelivery.getMapLocation().getLatLng());
+                        boundsUpdated = true;
+                    }
+                    drawPolyline();
                 }
             }
         }
@@ -141,6 +149,7 @@ public class mapActivity extends AppCompatActivity
 
         bottomSheetCollapsed = true;
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        mLocationRequest = new LocationRequest();
 
         mapFrag = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFrag.getMapAsync(this);
@@ -154,7 +163,13 @@ public class mapActivity extends AppCompatActivity
         currentDelivery = getIntent().getParcelableExtra("Delivery");
 
         polylineArray = getIntent().getParcelableArrayListExtra("polylineArray");
+
+        directionPositionList = new ArrayList<>();
+
+        deliveryList = new ArrayList<>();
         deliveryList = getIntent().getParcelableArrayListExtra("orderedDeliveryList");
+
+        boundsUpdated = false;
         //View hView = navigationView.getHeaderView(0);
 
         //TextView nav_user = hView.findViewById(R.id.nav_username);
@@ -208,15 +223,6 @@ public class mapActivity extends AppCompatActivity
     }
 
     @Override
-    public void onPause() {
-        super.onPause();
-        //stop location updates when Activity is no longer active
-        if (mFusedLocationClient != null) {
-            mFusedLocationClient.removeLocationUpdates(mLocationCallback);
-        }
-    }
-
-    @Override
     public void onMapReady(GoogleMap googleMap) {
         mGoogleMap = googleMap;
         mGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
@@ -225,7 +231,7 @@ public class mapActivity extends AppCompatActivity
             mGoogleMap.setPadding(0, 0, 0, visibleRelativeLayoutHeight);
         }
 
-        if (currentDelivery == null) {
+        if (currentDelivery == null && deliveryList == null) {
 
             mProgressDialog.setIndeterminate(true);
             mProgressDialog.setCancelable(false);
@@ -327,7 +333,7 @@ public class mapActivity extends AppCompatActivity
                         }
                     };
                     mainHandler.post(runnable);
-
+                    //TODO: COLLAPSE BOTTOMSHEET
                     polylineArray.remove(0);
 
                 } else {
@@ -369,32 +375,46 @@ public class mapActivity extends AppCompatActivity
         for (Delivery delivery : deliveries) {
             mGoogleMap.addMarker(new MarkerOptions().position(delivery.getMapLocation().getLatLng()));
         }
+
+        markersAdded = true;
     }
 
-    private void drawSelectedPolyline() {
+    private void drawPolyline() {
+        LatLng destination;
+
+        if (deliveryList != null) {
+            destination = deliveryList.get(0).getMapLocation().getLatLng();
+        } else {
+            destination = currentDelivery.getMapLocation().getLatLng();
+        }
 
         GoogleDirection.withServerKey("AIzaSyAY5I_s7St4sbEqQsUO8ZRwCADK5Kb6pKc")
                 .from(Utils.toLatLng(mLastLocation))
-                .to(currentDelivery.getMapLocation().getLatLng())
+                .to(destination)
                 .execute(new DirectionCallback() {
                     @Override
                     public void onDirectionSuccess(Direction direction, String rawBody) {
+
                         if (direction.isOK()) {
-                            mGoogleMap.clear();
-                            mGoogleMap.addMarker(new MarkerOptions().position(currentDelivery.getMapLocation().getLatLng()));
-                            ArrayList<LatLng> directionPositionList = direction.getRouteList().get(0).getLegList().get(0).getDirectionPoint();
-
+                            if (polylineFinal != null) {
+                                polylineFinal.remove();
+                            }
+                            if (!markersAdded) {
+                                addMarkers(deliveryList);
+                            }
+                            directionPositionList = direction.getRouteList().get(0).getLegList().get(0).getDirectionPoint();
                             polyline = DirectionConverter.createPolyline(getApplicationContext(), directionPositionList, 10, Color.rgb(2, 119, 189));
-
-                            mGoogleMap.addPolyline(polyline);
+                            polylineFinal = mGoogleMap.addPolyline(polyline);
+                            polylineFinal.setPoints(directionPositionList);
 
                         } else {
-                            // Do something
+
                         }
                     }
 
                     @Override
                     public void onDirectionFailure(Throwable t) {
+
                     }
                 });
     }
@@ -424,8 +444,8 @@ public class mapActivity extends AppCompatActivity
 
 
         mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(5000);
-        mLocationRequest.setFastestInterval(10000);
+        mLocationRequest.setInterval(3000);
+        mLocationRequest.setFastestInterval(1000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         if (ContextCompat.checkSelfPermission(this,
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
@@ -444,7 +464,7 @@ public class mapActivity extends AppCompatActivity
         }
 
         LatLngBounds bounds = builder.build();
-        mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 400));
+        mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 200));
     }
 
     public void updateMapBoundsCurrent(Location mLastLocation, LatLng currentDeliveryLatLng) {
@@ -452,7 +472,7 @@ public class mapActivity extends AppCompatActivity
         builder.include(Utils.toLatLng(mLastLocation));
         builder.include(currentDeliveryLatLng);
         LatLngBounds bounds = builder.build();
-        mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 400));
+        mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 200));
     }
 
     @Override
@@ -533,13 +553,13 @@ public class mapActivity extends AppCompatActivity
             Intent intent = new Intent(mapActivity.this, optimizeActivity.class);
             Bundle b = new Bundle();
 
-            b.putDouble("lat", mLastLocation.getLatitude());
-            b.putDouble("lng", mLastLocation.getLongitude());
+            if (mLastLocation != null) {
+                b.putDouble("lat", mLastLocation.getLatitude());
+                b.putDouble("lng", mLastLocation.getLongitude());
+            }
 
             intent.putExtras(b);
 
-            Log.i("currentlat", String.valueOf(mLastLocation.getLatitude()));
-            Log.i("currentlng", String.valueOf(mLastLocation.getLongitude()));
             startActivity(intent);
         } else if (id == R.id.about) {
             startActivity(new Intent(mapActivity.this, aboutActivity.class));
@@ -594,6 +614,40 @@ public class mapActivity extends AppCompatActivity
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        mProgressDialog.dismiss();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        mProgressDialog.dismiss();
+
+        //stop location updates when Activity is no longer active
+        if (mFusedLocationClient != null) {
+            mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        //stop location updates when Activity is no longer active
+        if (mFusedLocationClient != null) {
+            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return;
+            }
+            mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+            mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback, Looper.myLooper());
+        }
     }
 
     @Override
