@@ -2,10 +2,6 @@ package com.example.luka.delivery.entities;
 
 import com.squareup.moshi.Json;
 
-/**
- * Created by luka on 16.7.2017..
- */
-
 public class AccessToken {
 
     @Json(name="token_type")
@@ -16,6 +12,9 @@ public class AccessToken {
 
     @Json(name="access_token")
     String accessToken;
+
+    @Json(name = "refresh_token")
+    String refreshToken;
 
     public String getTokenType() {
         return tokenType;
@@ -49,7 +48,5 @@ public class AccessToken {
         this.refreshToken = refreshToken;
     }
 
-    @Json(name="refresh_token")
-    String refreshToken;
 
 }

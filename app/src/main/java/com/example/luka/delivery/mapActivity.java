@@ -399,7 +399,7 @@ public class mapActivity extends AppCompatActivity
                             if (polylineFinal != null) {
                                 polylineFinal.remove();
                             }
-                            if (!markersAdded) {
+                            if (!markersAdded && deliveryList != null) {
                                 addMarkers(deliveryList);
                             }
                             directionPositionList = direction.getRouteList().get(0).getLegList().get(0).getDirectionPoint();
