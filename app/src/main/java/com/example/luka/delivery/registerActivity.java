@@ -2,14 +2,15 @@ package com.example.luka.delivery;
 
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.EditText;
 
-/*import com.basgeekball.awesomevalidation.AwesomeValidation;
-import com.basgeekball.awesomevalidation.ValidationStyle;
-import com.basgeekball.awesomevalidation.utility.RegexTemplate;*/
+import com.example.luka.delivery.entities.AccessToken;
+import com.example.luka.delivery.entities.ApiError;
+import com.example.luka.delivery.network.ApiService;
+import com.example.luka.delivery.network.RetrofitBuilder;
 
 import java.util.List;
 import java.util.Map;
@@ -22,10 +23,9 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-import com.example.luka.delivery.entities.AccessToken;
-import com.example.luka.delivery.entities.ApiError;
-import com.example.luka.delivery.network.ApiService;
-import com.example.luka.delivery.network.RetrofitBuilder;
+/*import com.basgeekball.awesomevalidation.AwesomeValidation;
+import com.basgeekball.awesomevalidation.ValidationStyle;
+import com.basgeekball.awesomevalidation.utility.RegexTemplate;*/
 
 public class registerActivity extends AppCompatActivity {
 
@@ -78,12 +78,13 @@ public class registerActivity extends AppCompatActivity {
         String name = editTextNameRegister.getText().toString();
         String email = editTextEmailRegister.getText().toString();
         String password = editTextPasswordRegister.getText().toString();
+        String requiredRole = "Driver";
 
         editTextNameRegister.setError(null);
         editTextEmailRegister.setError(null);
         editTextPasswordRegister.setError(null);
 
-            call = service.register(name, email, password);
+        call = service.register(name, email, password, requiredRole);
             call.enqueue(new Callback<AccessToken>() {
 
                 @Override

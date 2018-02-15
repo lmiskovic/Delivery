@@ -459,8 +459,14 @@ public class mapActivity extends AppCompatActivity
     public void updateBoundsAll(List<Delivery> deliveryList) {
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
 
-        for (int i = 0; i < deliveryList.size(); i++) {
-            builder.include(deliveryList.get(i).getMapLocation().getLatLng());
+        if (deliveryList.size() > 0) {
+            for (int i = 0; i < deliveryList.size(); i++) {
+                builder.include(deliveryList.get(i).getMapLocation().getLatLng());
+            }
+        } else if (mLastLocation != null) {
+            builder.include(Utils.toLatLng(mLastLocation));
+        } else {
+            builder.include(new LatLng(44.4287103, 14.1629229));
         }
 
         LatLngBounds bounds = builder.build();
