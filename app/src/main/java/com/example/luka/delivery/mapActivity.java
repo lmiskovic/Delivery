@@ -121,6 +121,10 @@ public class mapActivity extends AppCompatActivity
         public void onLocationResult(LocationResult locationResult) {
             for (Location location : locationResult.getLocations()) {
                 mLastLocation = location;
+                if (mLastLocation != null) {
+                    updateLastLocation();
+                }
+
                 Log.i("mlastlocation", String.valueOf(mLastLocation.getLatitude()) + " " + String.valueOf(mLastLocation.getLongitude()));
                 if (currentDelivery != null || deliveryList != null) {
                     if (!boundsUpdated) {
@@ -285,6 +289,40 @@ public class mapActivity extends AppCompatActivity
     }
 
     private void replaceCurrentDelivery(Delivery delivery) {
+
+    }
+
+    void updateLastLocation() {
+        Log.i(TAG, "updateLastLocation");
+
+        tokenManager = TokenManager.getInstance(getSharedPreferences("prefs", MODE_PRIVATE));
+
+        service = RetrofitBuilder.createServiceWithAuth(ApiService.class, tokenManager);
+
+        String lastLocation = String.valueOf(mLastLocation.getLatitude()) + "," + String.valueOf(mLastLocation.getLongitude());
+        Log.i(TAG, "updateLastLocation" + lastLocation);
+
+        call = service.updateLastLocation(lastLocation);
+
+        call.enqueue(new Callback<AccessToken>() {
+            @Override
+            public void onResponse(Call<AccessToken> call, final Response<AccessToken> response) {
+                Log.i(TAG, "onResponse " + String.valueOf(response.code()));
+
+                if (response.code() == 204) {
+                    Log.i(TAG, "error " + String.valueOf(response.code()));
+                } else if (response.isSuccessful()) {
+
+                } else {
+
+                }
+            }
+
+            @Override
+            public void onFailure(Call<AccessToken> call, Throwable t) {
+                Log.i(TAG, "onFailure " + "onFailure");
+            }
+        });
 
     }
 

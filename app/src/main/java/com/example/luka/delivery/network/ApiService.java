@@ -27,12 +27,16 @@ public interface ApiService {
     @FormUrlEncoded
     Call<AccessToken> refresh(@Field("refresh_token") String refreshToken);
 
-    @GET("deliveries")
+    @GET("getDeliveries")
     Call<DeliveryResponse> deliveries();
 
     @POST("setDelivered")
     @FormUrlEncoded
     Call<AccessToken> setDelivered(@Field("id") int id);
+
+    @POST("updateLastLocation")
+    @FormUrlEncoded
+    Call<AccessToken> updateLastLocation(@Field("lastLocation") String lastLocation);
 
     @POST("logout")
     @FormUrlEncoded

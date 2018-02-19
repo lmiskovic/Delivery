@@ -1,24 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:tools="http://schemas.android.com/tools"
+    android:background="@drawable/gradient_background"
     android:orientation="vertical"
     android:paddingLeft="18dp"
     android:paddingRight="18dp"
-    tools:context="com.example.luka.delivery.registerActivity"
-    android:background="@drawable/gradient_background">
+    tools:context="com.example.luka.delivery.registerActivity">
 
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent">
         <LinearLayout
-            android:layout_height="match_parent"
             android:layout_width="match_parent"
-            android:orientation="vertical"
-            android:layout_marginTop="42dp">
+            android:layout_height="match_parent"
+            android:layout_marginTop="42dp"
+            android:orientation="vertical">
 
             <View
                 android:layout_width="match_parent"
@@ -27,41 +26,41 @@
 
             <EditText
 
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="textEmailAddress"
-                android:ems="10"
                 android:id="@+id/editTextNameRegister"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:background="@android:color/transparent"
-                android:padding="12dp"
-                android:drawablePadding="12dp"
-                android:hint="Ime i prezime"
-                android:textColor="@color/colorPrimaryText"
-                android:textColorHint="@color/colorSecondaryText"
                 android:drawableLeft="@drawable/ic_person_outline_white_24dp"
-                android:imeOptions="flagNoExtractUi"/>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/colorDivider"/>
-
-
-            <EditText
-
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:drawablePadding="12dp"
+                android:ems="10"
+                android:hint="Ime i prezime"
+                android:imeOptions="flagNoExtractUi"
                 android:inputType="textEmailAddress"
-                android:ems="10"
-                android:id="@+id/editTextEmailRegister"
-                android:background="@android:color/transparent"
                 android:padding="12dp"
-                android:drawablePadding="12dp"
-                android:hint="Email"
                 android:textColor="@color/colorPrimaryText"
-                android:textColorHint="@color/colorSecondaryText"
+                android:textColorHint="@color/colorSecondaryText" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/colorDivider"/>
+
+
+            <EditText
+
+                android:id="@+id/editTextEmailRegister"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
                 android:drawableLeft="@drawable/ic_mail_outline_white_24dp"
-                android:imeOptions="flagNoExtractUi"/>
+                android:drawablePadding="12dp"
+                android:ems="10"
+                android:hint="Email"
+                android:imeOptions="flagNoExtractUi"
+                android:inputType="textEmailAddress"
+                android:padding="12dp"
+                android:textColor="@color/colorPrimaryText"
+                android:textColorHint="@color/colorSecondaryText" />
 
             <View
                 android:layout_width="match_parent"
@@ -69,34 +68,19 @@
                 android:background="@color/colorDivider"/>
 
             <EditText
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="textPassword"
-                android:ems="10"
                 android:id="@+id/editTextPasswordRegister"
-                android:background="@android:color/transparent"
-                android:padding="12dp"
-                android:drawablePadding="12dp"
-                android:hint="Lozinka"
-                android:textColor="@color/colorPrimaryText"
-                android:textColorHint="@color/colorSecondaryText"
-                android:drawableLeft="@drawable/ic_lock_outline_white_24dp"
-                android:imeOptions="flagNoExtractUi"/> <!-- Input method option for not to use full screen input -->
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/colorDivider"/>
-
-            <Switch
-                android:id="@+id/switch1"
-                android:padding="12dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/ic_face_white_24dp"
+                android:background="@android:color/transparent"
+                android:drawableLeft="@drawable/ic_lock_outline_white_24dp"
                 android:drawablePadding="12dp"
-                android:text="Registrirati se kao dispečer"
-                android:textColor="@color/colorSecondaryText"/>
+                android:ems="10"
+                android:hint="Lozinka"
+                android:imeOptions="flagNoExtractUi"
+                android:inputType="textPassword"
+                android:padding="12dp"
+                android:textColor="@color/colorPrimaryText"
+                android:textColorHint="@color/colorSecondaryText" /> <!-- Input method option for not to use full screen input -->
 
             <View
                 android:layout_width="match_parent"
@@ -107,14 +91,14 @@
                 android:id="@+id/buttonRegisterRegister"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
                 android:background="#fff"
+                android:clickable="true"
+                android:padding="16dp"
                 android:text="Registriraj se"
                 android:textAllCaps="false"
-                android:textStyle="normal"
-                android:clickable="true"
                 android:textColor="@color/colorDarkText"
-                android:padding="16dp"
-                android:layout_marginTop="32dp"/>
+                android:textStyle="normal" />
 
         </LinearLayout>
     </ScrollView>
