@@ -32,7 +32,7 @@ public interface ApiService {
 
     @POST("setDelivered")
     @FormUrlEncoded
-    Call<AccessToken> setDelivered(@Field("id") int id);
+    Call<AccessToken> setDelivered(@Field("delivery_id") int id);
 
     @POST("updateLastLocation")
     @FormUrlEncoded

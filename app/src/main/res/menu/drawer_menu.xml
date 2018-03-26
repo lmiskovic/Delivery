@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <group android:checkableBehavior="single">
-        <item
-            android:id="@+id/my_profile"
-            android:icon="@drawable/ic_my_profile"
-            android:title="@string/my_profile" />
 
         <item
             android:id="@+id/deliveries"
@@ -15,11 +11,6 @@
             android:id="@+id/route"
             android:icon="@drawable/ic_route"
             android:title="@string/route" />
-
-        <item
-            android:id="@+id/about"
-            android:icon="@drawable/ic_info_outline_black_48dp"
-            android:title="@string/about" />
 
     </group>
 

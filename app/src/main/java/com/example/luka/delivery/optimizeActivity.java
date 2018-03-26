@@ -282,13 +282,9 @@ public class optimizeActivity extends AppCompatActivity implements OnMapReadyCal
         deliveriesLatLng.clear();
         mGoogleMap.clear();
 
-        Log.i("SORTED VALUE", String.valueOf(sorted));
-
         if (sorted == false) {
             Collections.sort(deliveryList, new sortLatLngArray(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude())));
             sorted = true;
-            Log.i("SORTING", "CALLED");
-
         }
 
 

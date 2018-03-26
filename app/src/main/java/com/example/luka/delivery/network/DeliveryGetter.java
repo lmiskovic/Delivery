@@ -6,7 +6,9 @@ import android.content.SharedPreferences;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.example.luka.delivery.TokenManager;
 import com.example.luka.delivery.entities.Delivery;
@@ -58,6 +60,19 @@ public class DeliveryGetter {
             @Override
             public void onResponse(Call<DeliveryResponse> call, Response<DeliveryResponse> response) {
 
+                if (response.code() == 401) {
+                    Handler mainHandler = new Handler(Looper.getMainLooper());
+
+                    Runnable runnable = new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(context, "Unauthorized access", Toast.LENGTH_LONG).show();
+                            context.startActivity(new Intent(context, loginActivity.class));
+                        }
+                    };
+                    mainHandler.post(runnable);
+                }
+
                 if (response.isSuccessful()) {
 
                     for (int i = 0; i < response.body().getData().size(); i++) {
@@ -72,9 +87,9 @@ public class DeliveryGetter {
                                         response.body().getData().get(i).getCustomerName(),
                                         response.body().getData().get(i).getContactPhoneNumber(),
                                         response.body().getData().get(i).getNote(),
-                                        response.body().getData().get(i).getMapLocation()
+                                response.body().getData().get(i).getMapLocation(),
+                                response.body().getData().get(i).getStatus()
                                 ));
-
 
                         if (deliveryList.get(i).getMapLocation() == null) {
 
@@ -83,6 +98,7 @@ public class DeliveryGetter {
                             List<Address> addresses = null;
                             try {
                                 addresses = geocoder.getFromLocationName(deliveryList.get(i).getDeliveryAddress(), 1);
+                                Log.e(TAG, String.valueOf(addresses.size()));
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }

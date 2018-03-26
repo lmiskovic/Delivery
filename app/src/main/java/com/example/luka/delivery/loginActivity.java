@@ -1,17 +1,11 @@
 package com.example.luka.delivery;
 
 import android.content.Intent;
-import android.media.session.MediaSession;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.util.Patterns;
 import android.widget.EditText;
-import android.widget.Toast;
 
-/*import com.basgeekball.awesomevalidation.AwesomeValidation;
-import com.basgeekball.awesomevalidation.ValidationStyle;
-import com.basgeekball.awesomevalidation.utility.RegexTemplate;*/
 import com.example.luka.delivery.entities.AccessToken;
 import com.example.luka.delivery.entities.ApiError;
 import com.example.luka.delivery.network.ApiService;
@@ -29,14 +23,17 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/*import com.basgeekball.awesomevalidation.AwesomeValidation;
+import com.basgeekball.awesomevalidation.ValidationStyle;
+import com.basgeekball.awesomevalidation.utility.RegexTemplate;*/
+
 public class loginActivity extends AppCompatActivity {
 
+    private static final String TAG = "loginActivity";
     ApiService service;
     TokenManager tokenManager;
     //AwesomeValidation validator;
     Call<AccessToken> call;
-
-    private static final String TAG = "loginActivity";
     @BindView(R.id.editTextEmailLogin) EditText editTextEmailLogin;
     @BindView(R.id.editTextPasswordLogin) EditText editTextPasswordLogin;
 
@@ -92,18 +89,16 @@ public class loginActivity extends AppCompatActivity {
 
                 if (response.isSuccessful()) {
                     tokenManager.saveToken(response.body());
-                    Log.w(TAG, "onResponse: " + response.body());
+
+
                     Intent intent = new Intent (loginActivity.this, mapActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     intent.putExtra("usernameMail", email);
                     startActivity(intent);
-
+                    finish();
                 } else{
                     if(response.code() == 422){
                         handleErrors(response.errorBody());
-                    }
-                    if(response.code() == 401){
-                        ApiError apiError = Utils.converErrors((response.errorBody()));
-                        Toast.makeText(loginActivity.this, apiError.getMessage(), Toast.LENGTH_LONG).show();
                     }
                 }
             }
@@ -131,7 +126,6 @@ public class loginActivity extends AppCompatActivity {
                 editTextPasswordLogin.setError(error.getValue().get(0));
             }
         }
-
     }
 
     /*private void setupRules() {

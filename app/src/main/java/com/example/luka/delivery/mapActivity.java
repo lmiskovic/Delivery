@@ -34,7 +34,6 @@ import com.akexorcist.googledirection.GoogleDirection;
 import com.akexorcist.googledirection.model.Direction;
 import com.akexorcist.googledirection.util.DirectionConverter;
 import com.example.luka.delivery.entities.AccessToken;
-import com.example.luka.delivery.entities.ApiError;
 import com.example.luka.delivery.entities.Delivery;
 import com.example.luka.delivery.entities.onDeliveryListener;
 import com.example.luka.delivery.network.ApiService;
@@ -120,12 +119,13 @@ public class mapActivity extends AppCompatActivity
         @Override
         public void onLocationResult(LocationResult locationResult) {
             for (Location location : locationResult.getLocations()) {
-                mLastLocation = location;
-                if (mLastLocation != null) {
-                    updateLastLocation();
+
+                if (location != null || mLastLocation != location) {
+                    updateLastLocation(String.valueOf(location.getLatitude()) + "," + String.valueOf(location.getLongitude()));
                 }
 
-                Log.i("mlastlocation", String.valueOf(mLastLocation.getLatitude()) + " " + String.valueOf(mLastLocation.getLongitude()));
+                mLastLocation = location;
+
                 if (currentDelivery != null || deliveryList != null) {
                     if (!boundsUpdated) {
                         updateMapBoundsCurrent(mLastLocation, currentDelivery.getMapLocation().getLatLng());
@@ -158,9 +158,8 @@ public class mapActivity extends AppCompatActivity
         mapFrag = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFrag.getMapAsync(this);
 
-        //Intent intent = getIntent();
-        //String email = intent.getStringExtra("usernameMail");
-        //Log.w(TAG, "mapActivity email: " + email.toString());
+        Intent intent = getIntent();
+        String email = intent.getStringExtra("usernameMail");
 
         navigationView.setNavigationItemSelectedListener(this);
 
@@ -174,15 +173,14 @@ public class mapActivity extends AppCompatActivity
         deliveryList = getIntent().getParcelableArrayListExtra("orderedDeliveryList");
 
         boundsUpdated = false;
-        //View hView = navigationView.getHeaderView(0);
+        View hView = navigationView.getHeaderView(0);
 
-        //TextView nav_user = hView.findViewById(R.id.nav_username);
+        TextView nav_user = hView.findViewById(R.id.nav_username);
 
-        //nav_user.setText(email);
+        nav_user.setText(email);
 
-        if (currentDelivery != null) {
-            populateBottomSheet(currentDelivery);
-        }
+        mLastLocation = null;
+
     }
 
     private void populateBottomSheet(Delivery currentDelivery) {
@@ -202,7 +200,7 @@ public class mapActivity extends AppCompatActivity
                 BottomSheetBehavior behavior = BottomSheetBehavior.from((View) bottomSheet);
                 behavior.setPeekHeight(visibleRelativeLayoutHeight);
 
-                if (bottomSheetCollapsed)
+                if (bottomSheetCollapsed && mGoogleMap != null)
                     mGoogleMap.setPadding(0, 0, 0, visibleRelativeLayoutHeight);
 
                 behavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
@@ -230,6 +228,13 @@ public class mapActivity extends AppCompatActivity
     public void onMapReady(GoogleMap googleMap) {
         mGoogleMap = googleMap;
         mGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+
+        if (currentDelivery != null) {
+            populateBottomSheet(currentDelivery);
+            mGoogleMap.addMarker(new MarkerOptions().position(currentDelivery.getMapLocation().getLatLng())
+                    .title(currentDelivery.getCustomerName())
+                    .snippet(currentDelivery.getDeliveryAddress() + "\n" + currentDelivery.getContactPhoneNumber()));
+        }
 
         if (bottomSheetCollapsed) {
             mGoogleMap.setPadding(0, 0, 0, visibleRelativeLayoutHeight);
@@ -292,35 +297,23 @@ public class mapActivity extends AppCompatActivity
 
     }
 
-    void updateLastLocation() {
-        Log.i(TAG, "updateLastLocation");
+    void updateLastLocation(String lastLocation) {
 
         tokenManager = TokenManager.getInstance(getSharedPreferences("prefs", MODE_PRIVATE));
 
         service = RetrofitBuilder.createServiceWithAuth(ApiService.class, tokenManager);
-
-        String lastLocation = String.valueOf(mLastLocation.getLatitude()) + "," + String.valueOf(mLastLocation.getLongitude());
-        Log.i(TAG, "updateLastLocation" + lastLocation);
 
         call = service.updateLastLocation(lastLocation);
 
         call.enqueue(new Callback<AccessToken>() {
             @Override
             public void onResponse(Call<AccessToken> call, final Response<AccessToken> response) {
-                Log.i(TAG, "onResponse " + String.valueOf(response.code()));
-
-                if (response.code() == 204) {
-                    Log.i(TAG, "error " + String.valueOf(response.code()));
-                } else if (response.isSuccessful()) {
-
-                } else {
-
-                }
+                Log.i(TAG, "updateLastLocation " + "onResponse");
             }
 
             @Override
             public void onFailure(Call<AccessToken> call, Throwable t) {
-                Log.i(TAG, "onFailure " + "onFailure");
+                Log.i(TAG, "updateLastLocation " + "onFailure");
             }
         });
 
@@ -344,45 +337,49 @@ public class mapActivity extends AppCompatActivity
                 Log.i(TAG, "onResponse " + String.valueOf(response.code()));
 
                 if (response.code() == 204) {
-                    Log.i(TAG, "error " + String.valueOf(response.code()));
+
+                    currentDelivery = null;
 
                     Handler mainHandler = new Handler(Looper.getMainLooper());
 
                     Runnable runnable = new Runnable() {
                         @Override
                         public void run() {
-                            Toast.makeText(mapActivity.this, "Status change: failed", Toast.LENGTH_LONG).show();
+                            Intent intent = new Intent(mapActivity.this, deliveryActivity.class);
+                            startActivity(intent);
+                            finish();
                         }
                     };
+
                     mainHandler.post(runnable);
 
-                } else if (response.isSuccessful()) {
-                    deliveryList.remove(0);
-                    currentDelivery = deliveryList.get(0);
+/*                        Handler mainHandler = new Handler(Looper.getMainLooper());
 
-                    // Get a handler that can be used to post to the main thread
-                    Handler mainHandler = new Handler(Looper.getMainLooper());
+                        Runnable runnable = new Runnable() {
+                            @Override
+                            public void run() {
+                                updatePolylines(polylineArray);
+                                populateBottomSheet(currentDelivery);
+                            }
+                        };
 
-                    Runnable runnable = new Runnable() {
-                        @Override
-                        public void run() {
-                            updatePolylines(polylineArray);
-                            populateBottomSheet(currentDelivery);
-                        }
-                    };
-                    mainHandler.post(runnable);
-                    //TODO: COLLAPSE BOTTOMSHEET
-                    polylineArray.remove(0);
-
+                        mainHandler.post(runnable);
+*/
                 } else {
-                    ApiError apiError = Utils.converErrors((response.errorBody()));
-                    Toast.makeText(mapActivity.this, apiError.getMessage(), Toast.LENGTH_LONG).show();
+                    Handler mainHandler = new Handler(Looper.getMainLooper());
+                    Runnable runnable = new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(mapActivity.this, "Status change failed!", Toast.LENGTH_SHORT).show();
+                        }
+                    };
+                    mainHandler.post(runnable);
                 }
             }
 
             @Override
             public void onFailure(Call<AccessToken> call, Throwable t) {
-                Log.i(TAG, "onFailure " + "onFailure");
+                Log.i(TAG, "onFailure " + t.getMessage());
             }
         });
 
@@ -396,22 +393,12 @@ public class mapActivity extends AppCompatActivity
         }
     }
 
-    @OnClick(R.id.buttonDeclined)
-    void setDeclined() {
-        Log.i(TAG, "clickedForDelivery " + currentDelivery.getDeliveryAddress());
-        //contact api and mark delivery as declined
-    }
-
-    @OnClick(R.id.buttonNextDay)
-    void setForNextDay() {
-        Log.i(TAG, "clickedForDelivery " + currentDelivery.getDeliveryAddress());
-        //contact api and mark delivery as postponed
-    }
-
     private void addMarkers(List<Delivery> deliveries) {
 
         for (Delivery delivery : deliveries) {
-            mGoogleMap.addMarker(new MarkerOptions().position(delivery.getMapLocation().getLatLng()));
+            mGoogleMap.addMarker(new MarkerOptions().position(delivery.getMapLocation().getLatLng())
+                    .title(delivery.getCustomerName())
+                    .snippet(delivery.getDeliveryAddress() + "\n" + delivery.getContactPhoneNumber()));
         }
 
         markersAdded = true;
@@ -426,12 +413,14 @@ public class mapActivity extends AppCompatActivity
             destination = currentDelivery.getMapLocation().getLatLng();
         }
 
-        GoogleDirection.withServerKey("AIzaSyAY5I_s7St4sbEqQsUO8ZRwCADK5Kb6pKc")
+        GoogleDirection.withServerKey("AIzaSyCXi2QdZU84A10EBDy-A8E0S9o4DaRcqZs")
                 .from(Utils.toLatLng(mLastLocation))
                 .to(destination)
                 .execute(new DirectionCallback() {
                     @Override
                     public void onDirectionSuccess(Direction direction, String rawBody) {
+                        Log.e(TAG, rawBody + "\n");
+                        Log.e(TAG, String.valueOf(direction) + "\n");
 
                         if (direction.isOK()) {
                             if (polylineFinal != null) {
@@ -452,7 +441,7 @@ public class mapActivity extends AppCompatActivity
 
                     @Override
                     public void onDirectionFailure(Throwable t) {
-
+                        Log.e(TAG, t.getMessage());
                     }
                 });
     }
@@ -589,10 +578,12 @@ public class mapActivity extends AppCompatActivity
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.my_profile) {
-            // Handle the camera action
-        } else if (id == R.id.deliveries) {
-            startActivity(new Intent(mapActivity.this, deliveryActivity.class));
+        if (id == R.id.deliveries) {
+
+            Intent intent = new Intent(mapActivity.this, deliveryActivity.class);
+            startActivity(intent);
+            finish();
+
         } else if (id == R.id.route) {
             Intent intent = new Intent(mapActivity.this, optimizeActivity.class);
             Bundle b = new Bundle();
@@ -605,8 +596,7 @@ public class mapActivity extends AppCompatActivity
             intent.putExtras(b);
 
             startActivity(intent);
-        } else if (id == R.id.about) {
-            startActivity(new Intent(mapActivity.this, aboutActivity.class));
+            finish();
         }
 
         drawer.closeDrawer(GravityCompat.START);
@@ -627,8 +617,13 @@ public class mapActivity extends AppCompatActivity
                 call.enqueue(new Callback<AccessToken>() {
                     @Override
                     public void onResponse(Call<AccessToken> call, Response<AccessToken> response) {
+
                         getSharedPreferences("prefs", MODE_PRIVATE).edit().clear().apply();
-                        startActivity(new Intent(mapActivity.this, loginActivity.class));
+                        tokenManager.deleteToken();
+                        Intent intent = new Intent(mapActivity.this, loginActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(intent);
+                        finish();
                     }
 
                     @Override
@@ -706,6 +701,9 @@ public class mapActivity extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
-        finish();
+        if (bottomSheet.getVisibility() == View.VISIBLE) {
+        } else {
+            finishAffinity();
+        }
     }
 }

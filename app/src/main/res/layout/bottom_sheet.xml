@@ -99,39 +99,13 @@
         android:id="@+id/buttonDelivered"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="16dp"
-        android:background="@color/colorPrimarylighter"
-        android:clickable="true"
-        android:padding="16dp"
-        android:text="Delivered"
-        android:textAllCaps="false"
-        android:textColor="@color/colorPrimaryText" />
-
-    <Button
-        android:id="@+id/buttonNextDay"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="16dp"
-        android:background="@color/colorPrimarylighter"
-        android:clickable="true"
-        android:padding="16dp"
-        android:text="Custommer not available, try again tomorrow"
-        android:textAllCaps="false"
-        android:textColor="@color/colorPrimaryText" />
-
-    <Button
-        android:id="@+id/buttonDeclined"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
         android:layout_marginHorizontal="16dp"
         android:layout_marginTop="16dp"
         android:background="@color/colorPrimarylighter"
         android:clickable="true"
         android:padding="16dp"
-        android:text="Delivery declined by customer"
+        android:text="Delivered"
         android:textAllCaps="false"
         android:textColor="@color/colorPrimaryText" />
 

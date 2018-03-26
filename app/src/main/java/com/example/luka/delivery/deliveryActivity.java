@@ -19,8 +19,9 @@ import butterknife.ButterKnife;
 
 public class deliveryActivity extends AppCompatActivity {
 
-    @BindView(R.id.recyclerView) RecyclerView recyclerView;
     private static final String TAG = "deliveryActivity";
+    @BindView(R.id.recyclerView)
+    RecyclerView recyclerView;
     ProgressDialog mProgressDialog;
 
     @Override
@@ -35,7 +36,7 @@ public class deliveryActivity extends AppCompatActivity {
         mProgressDialog.setMessage("Loading deliveries...");
         mProgressDialog.show();
 
-        DeliveryGetter deliveryGetter = new DeliveryGetter(this);
+        final DeliveryGetter deliveryGetter = new DeliveryGetter(this);
         deliveryGetter.call(new onDeliveryListener() {
             @Override
             public void onDelivery(List<Delivery> deliveryList) {
@@ -61,6 +62,9 @@ public class deliveryActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        startActivity(new Intent(deliveryActivity.this,mapActivity.class));
+        Intent intent = new Intent(deliveryActivity.this, mapActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
+        finish();
     }
 }

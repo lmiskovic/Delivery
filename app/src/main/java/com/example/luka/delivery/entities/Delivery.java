@@ -27,10 +27,11 @@ public class Delivery implements Parcelable {
     private String contactPhoneNumber;
     private String note;
     private MapLocation mapLocation;
+    private String status;
 
     public Delivery(int id, String created_at, String updated_at, int user_id,
                     String deliveryAddress, String customerName, String contactPhoneNumber,
-                    String note, MapLocation mapLocation) {
+                    String note, MapLocation mapLocation, String status) {
 
         this.id = id;
         this.created_at = created_at;
@@ -41,6 +42,7 @@ public class Delivery implements Parcelable {
         this.contactPhoneNumber = contactPhoneNumber;
         this.note = note;
         this.mapLocation = mapLocation;
+        this.status = status;
     }
 
     public Delivery() {
@@ -57,6 +59,15 @@ public class Delivery implements Parcelable {
         contactPhoneNumber = in.readString();
         note = in.readString();
         mapLocation = (MapLocation) in.readValue(MapLocation.class.getClassLoader());
+        status = in.readString();
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public String getCreated_at() {
@@ -148,5 +159,6 @@ public class Delivery implements Parcelable {
         dest.writeString(contactPhoneNumber);
         dest.writeString(note);
         dest.writeValue(mapLocation);
+        dest.writeString(status);
     }
 }
